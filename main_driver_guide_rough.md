@@ -2,6 +2,12 @@
 
 <!--In terms of describing what a function is doing, you should only have to do this for custom functions.-->
 
+<!--Make/ finish a table of contents with nested lists of sections/ subsections for easy navigation through the document.-->
+
+1. [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
+   - 1.[Initial Set Up](#initial-set-up)
+     - 1.1[Required Packages](#required-packages)
+
 ## Initial Set Up
 
 ### Required Packages
