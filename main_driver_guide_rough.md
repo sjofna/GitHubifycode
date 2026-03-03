@@ -7,6 +7,7 @@
 1. [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
    - 1.[Initial Set Up](#initial-set-up)
      - 1.1[Required Packages](#required-packages)
+   - 2. References
 
 ## Initial Set Up
 
@@ -51,11 +52,14 @@ ee_Initialize(user = ee_username, drive = TRUE)
 > Useful text
  etc doesnt work w collapsable lists.... -->
 
+
 ### Other Required Scripts to Run the Package
-Ensure that all additional scripts are downloaded and file path names have been replaced with personal file paths. 
+
+Ensure that all additional scripts are downloaded and file path names have been replaced with personal file paths. These additional scripts define custom functions that will be used in this package.
 
 >[!NOTE]
 > The file path provided will not match the user's personal file path. If this is not changed, the code will not run correctly.
+
 
 ### Set File Paths for Inputs and Outputs
 
@@ -65,67 +69,27 @@ This is important as it will ensure that all inputs are coming from the correct 
 ---
 
 ## Call in Data and Compute Initial Variables
-These next few sections of code calculate a few different things. 
 
-- Slope is derived from the digital elevation model (DEM) that is called in.
-- Well points are cleaned, and converted to a vector file. A 8000m buffer is also created around the points to **_(???)_**
-- Plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
-- Parameters are extracted from well data such as mean, maximum and median values. _(only mean??)_
-- 
-
-  
-Slope is derived from the digital elevation model (DEM) that is called in.
-```
-dem <- rast("E:/MSc/LiDAR/RobsonValley/DEM/RobsonValleyDEM.tif")
-dem_filled <- rast(file.path(main_in, "LiDAR/Filled/DEM_filled_detrend_test_CV.tif")) # filled (optional)
-
-target <- target_rast(dem = dem)
-
-slope <- terra::terrain(dem, "slope")
-```
-
- 
-Well points are cleaned, and converted to a vector file. A 8000m buffer is also created around the points to **_(???)_**
-```
-well_data <- well_data %>%
-  select(well_tag_number, latitude_Decdeg, longitude_Decdeg, utm_zone_code,
-         utm_northing, utm_easting, bedrock_depth_ft.bgl) %>%
-  filter(!is.na(bedrock_depth_ft.bgl), bedrock_depth_ft.bgl >= 0) %>%
-  mutate(bedrock_depth_m = bedrock_depth_ft.bgl * 0.3048) # convert from feet to meters
-
-well_points <- vect(well_data, geom = c("longitude_Decdeg", "latitude_Decdeg"), crs = "+proj=longlat +datum=WGS84")
-well_points <- project(well_points, target$crs)
-
-well_points <- well_depth(well_points = well_points,
-                          target = target, 
-                          buff = 8000)
-```
+This next few sections of code lays the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. This can be helpful for _( efficiency? and computing power?)_ while working through the code. 
 
 
-Plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
-```
-well_data <- as.data.frame(well_points)
-ggplot(well_data, aes(bedrock_depth_m)) +
-  geom_density(fill = "skyblue", alpha = 0.6) + 
-  labs(
-    title = "Depth to Bedrock Distribution",
-    x = "Depth to Bedrock (m bgl)", 
-    y = "Density"
-  ) + 
-  theme_minimal()
-```
-<!-- insert plot created from code?-->
+### Slope Calculation
+
+Slope is derived from the called in digital elevation model (DEM) using the `terra::terrain(dem, "slope")` function.
 
 
-Parameters are extracted from well data such as mean, maximum and median values. _(only mean??)_
-```
-mean_well_depth <- round(mean(well_data$bedrock_depth_m), 3)
-```
+### Well Data
 
->[!TIP]
-> Objects can be removed with the `rm` function to clean memory. This can be helpful for _( efficiency?)_
+Well data is needed for later calulation of soil depths. <!-- explain more here -->
+Well data is cleaned to remove unwanted collumns before being converted to a vector file. A 8000m buffer is also created around the points to **_(???)_**. 
+
+Additional plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
+
+Mean well depth is then extracted for **_(??)_**.
 
 
-To conduct road filling, road file is called in, 15m buffer is created and file is converted to a raster layer. A new DEM is then created from this road raster where road cells are converted to NaN values which are then used to ??? `inpaint_nans` [(inpaint_nans documentation)](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).
+### Road Filling
+
+To conduct road filling, the vector road file is called in, a 15m buffer is created and the buffer file is converted to a raster layer. A new DEM is then created from this road raster where road cells are converted to NaN values using `ifel`. The `inpaint_nans` function then .
 A mask is then added 
 
