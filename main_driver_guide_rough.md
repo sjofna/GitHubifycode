@@ -96,9 +96,11 @@ to calculate linear regression of slope and curvature. This method combines [Pat
 
 $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}$$
 
->$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the slope of the relationshipe between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness, or rate of slope change in any given direction. When this value is equal to 0, $\bar{h}$ becomes $h$. _(still unsure where exactly 1.09 came from though??)_
+>$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the relationship between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness, or rate of slope change in any given direction. When this value is equal to 0, $\bar{h}$ becomes $h$. _(still unsure where exactly 1.09 came from though??)_
 
-. C<sub>1</sub> represents teh soil's sensitivity to slope curvature
+C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitiviity as $(\frac{\mathrm \bigtriangleup h})$. Using the values from the most similar site tested (Coos Bay) $C1 = (\frac{\mathrm \bigtriangleup h}) = 3.522 $.
+
+C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation.
 
 <!--
 dr, regolith depth, m
