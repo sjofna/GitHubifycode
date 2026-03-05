@@ -4,21 +4,28 @@
 
 <!--Make/ finish a table of contents with nested lists of sections/ subsections for easy navigation through the document.-->
 
-1. [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
-   - 1.[Initial Set Up](#initial-set-up)
-     - 1.1[Required Packages](#required-packages)
-   - 2. References
+- [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
+   - [1. Initial Set Up](#1.-initial-set-up)
+     - [1.1 Required Packages](#1.1-required-packages)
+     - [1.2 Other Required Scripts to Run the Package](#1.2other-required-scripts-to-run-the-package)
+     - [1.3 Set File Paths](#1.3-set-file-paths)
+   - [2. Initial Variable Computation](#2.initial-variable-computation)
+     - [2.1 Slope Calculation](#2.1-slope-calculation)
+     - [2.2 Well Data](#2.2-well-data)
+     - [2.3 Road Filling](#2.3-road-filling)
+     - [2.4 Soil Depth](#2.4-soil-depth)
+   - 3. [References](#references)
 
-## Initial Set Up
+## 1. Initial Set Up
 
-### Required Packages
+### 1.1 Required Packages
 [GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are needed to run the model.
 Read up on documention by clicking the hyperlinks above.
 
 <!-- Describe basic package functions? -->
 
 
-**_To Set Up Rgee_**
+**_Setting Up Rgee_**
 
 1. Sign up for Earth Engine if not already.
 2. Set up Earth Engine user with user's email (replace "user_email@email.com" with user's email).
@@ -31,7 +38,7 @@ Read up on documention by clicking the hyperlinks above.
  etc doesnt work w collapsable lists.... -->
 
 
-### Other Required Scripts to Run the Package
+### 1.2 Other Required Scripts to Run the Package
 
 Ensure that all additional scripts are downloaded and file path names have been replaced with personal file paths. These additional scripts define custom functions that will be used in this package.
 
@@ -39,24 +46,24 @@ Ensure that all additional scripts are downloaded and file path names have been 
 > The file path provided will not match the user's personal file path. If this is not changed, the code will not run correctly.
 
 
-### Set File Paths for Inputs and Outputs
+### 1.3 Set File Paths
 
-This is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access.
+This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` can also be used _(reason??)_
 
 
 ---
 
-## Call in Data and Compute Initial Variables
+## 2. Initial Variable Computation
 
 This next few sections of code lays the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. This can be helpful for _( efficiency? and computing power?)_ while working through the code. 
 
 
-### Slope Calculation
+### 2.1 Slope Calculation
 
 Slope is derived from the called in digital elevation model (DEM) using the `terra::terrain(dem, "slope")` function.
 
 
-### Well Data
+### 2.2 Well Data
 
 Well data is needed for later calulation of soil depths. <!-- explain more here -->
 Well data is cleaned to remove unwanted collumns before being converted to a vector file. A 8000m buffer is also created around the points to **_(???)_**. 
@@ -66,7 +73,7 @@ Additional plotting of well points is optional but can be helpful for viasualiza
 Mean well depth is then extracted for **_(??)_**.
 
 
-### Road Filling
+### 2.3 Road Filling
 
 To conduct road filling, the vector road file is called in, a 15m buffer is created and the buffer file is converted to a raster layer. 15 meters is used to adequitely remove the road surface as well as the cuttslope (upslope embankment) and fill slope (downslope embankment). A new DEM is  created from the road raster and road cells are converted to NaN values using `ifel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
 
@@ -79,16 +86,21 @@ The detrending function `detrend_surface` and `infel` add noise back to the inpa
 These inpainting and detrending functions aim at developing a surface reconstruction framework that is capable of preserving topographic variability and morphometric properties (e.g., roughness, flow directions) for carrying out solid hydrogeomorphological elaborations. 
 
 
-## Soil Depth
+## 2.4 Soil Depth
 
 Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith), a fortran program, to r. This model allows for the estimation of soil mantle thickess in a digital landscape and assessment of debris flow based on parameters. 
 
 The LCSC model uses the equation 
 ![equation](https://latex.codecogs.com/svg.latex?d_%7Br%7D%20%3D%20C_%7B0%7D&plus;C_%7B1%7D%5Cbigtriangledown%20z&plus;C_%7B2%7D%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%2C%20where%20%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%3E0) 
-to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. C<sub>0</sub> represents the background thickness soil thickness, and is equal to the y-intercept in the linear regression. 1.09 is used in this case as...
+to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. C<sub>0</sub> is equal to the y-intercept in the linear regression. `C0=1.09` was calculated using the formula presented in the Patton et al. paper where average soil thickness \bar{h} can be derived from the general equation 
+
+$${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}$$
+
+>$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the slope of the relationshipe between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness, or rate of slope change in any given direction. When this value is equal to 0, $\bar{h}$ becomes $h$. _(still unsure where exactly 1.09 came from though??)_
 
 . C<sub>1</sub> represents teh soil's sensitivity to slope curvature
 
+<!--
 dr, regolith depth, m
 C0, empirical constant (C0)
 C1, empirical constant (C1)
@@ -97,6 +109,7 @@ C2, empirical constant (C2)
 p, exponent of PSD polynomial or of upslope area (power)
 κ, plan-view curvature of ground surface, ArcGIS convention (-100 * curvature)
 A, upslope contributing area, m2
+-->
 
 <!--LRSC: Linear regression slope and curvature (combines Patton and others 2018 with linear slope)
 
@@ -113,3 +126,15 @@ A, upslope contributing area, m2
 
 # - C2 represents the control of slope angle on soil thickness, larger C2 = more thinning due to increasing slope angle
 ## - this is an add on and not found in the Patton et al., 2018 equation.-->
+
+<!-- from the soild depth code 
+    mag_del_z <- tan(slope_angle)
+    sc <- tan(theta_c_rad)
+    
+     if (mag_del_z > sc) {
+      depth <- 0
+    } else {
+      h1 <- C2 * (sc - mag_del_z)
+      h2 <- C0 + C1 * lap
+      depth <- h1 + h2
+      depth <- max(min(depth, depth_max), depth_min)
