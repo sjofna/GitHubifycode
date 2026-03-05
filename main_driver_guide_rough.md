@@ -98,45 +98,8 @@ $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}
 
 >$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the relationship between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness, or rate of slope change in any given direction. When this value is equal to 0, $\bar{h}$ becomes $h$. _(still unsure where exactly 1.09 came from though??)_
 
-C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitiviity as $(\frac{\mathrm \bigtriangleup h})$. Using the values from the most similar site tested (Coos Bay) $C1 = (\frac{\mathrm \bigtriangleup h}) = 3.522 $.
+C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitiviity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$. Using the values from the most similar site tested (Coos Bay) $C_1 = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) = 3.522$.
 
-C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation.
+C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 * ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians. Using _(#?)_ as $h_1$, C<sub>2</sub> is determined to be 0.5.
 
-<!--
-dr, regolith depth, m
-C0, empirical constant (C0)
-C1, empirical constant (C1)
-C2, empirical constant (C2)
-θ, slope angle, degrees
-p, exponent of PSD polynomial or of upslope area (power)
-κ, plan-view curvature of ground surface, ArcGIS convention (-100 * curvature)
-A, upslope contributing area, m2
--->
-
-<!--LRSC: Linear regression slope and curvature (combines Patton and others 2018 with linear slope)
-
-# - C0 represents background thickness soil thickness, the y-intercept in the linear regression
-## - in the Patton et al., 2018 paper this is the same as h bar in the generalized equation
-## RG3D mean soil depth = 1.09
-## from previous soil modeling paper in southern BC cited mean depth for Tulameen BC: 5m
-###http://dx.doi.org/10.1016/j.geoderma.2016.07.012
-
-# - C1 represents the sensitivity of soil thickness to slope curvature
-## - in Patton et al., 2018 this is the same as delta h over delta c
-### - based on the relationship between curvature sd and delta h over delta c as suggested in Patton et al., 2018  (y = -446.3x + 30.3)
-### and using the values from the most similar site tested (Coos Bay) delta h over delta c (C1) = 3.522
-
-# - C2 represents the control of slope angle on soil thickness, larger C2 = more thinning due to increasing slope angle
-## - this is an add on and not found in the Patton et al., 2018 equation.-->
-
-<!-- from the soild depth code 
-    mag_del_z <- tan(slope_angle)
-    sc <- tan(theta_c_rad)
-    
-     if (mag_del_z > sc) {
-      depth <- 0
-    } else {
-      h1 <- C2 * (sc - mag_del_z)
-      h2 <- C0 + C1 * lap
-      depth <- h1 + h2
-      depth <- max(min(depth, depth_max), depth_min)
+For soil depth compuation `sca` is additionally converted to `ca` by multiplying `sca` by its own resolution _(still confused... what is sca and ca stand for???)_.
