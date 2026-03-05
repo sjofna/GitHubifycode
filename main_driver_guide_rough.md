@@ -14,6 +14,7 @@
      - [2.2 Well Data](#2.2-well-data)
      - [2.3 Road Filling](#2.3-road-filling)
      - [2.4 Soil Depth](#2.4-soil-depth)
+     - [2.5 Extract Soil Properties](#2.5-extract-soil-properties)
    - 3. [References](#references)
 
 ## 1. Initial Set Up
@@ -88,10 +89,14 @@ These inpainting and detrending functions aim at developing a surface reconstruc
 
 ## 2.4 Soil Depth
 
+### 2.4.1 Calculate Soil Depth from Parameters
 Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith), a fortran program, to r. This model allows for the estimation of soil mantle thickess in a digital landscape and assessment of debris flow based on parameters. 
 
 The LCSC model uses the equation 
-![equation](https://latex.codecogs.com/svg.latex?d_%7Br%7D%20%3D%20C_%7B0%7D&plus;C_%7B1%7D%5Cbigtriangledown%20z&plus;C_%7B2%7D%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%2C%20where%20%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%3E0) 
+
+$$\mathrm d_r = C_0 + C_1 \bigtriangledown z + C_2 (S_c - |\bigtriangledown z|),       where      (S_c - |\bigtriangledown z|) > 0$$
+
+<!-- ![equation](https://latex.codecogs.com/svg.latex?d_%7Br%7D%20%3D%20C_%7B0%7D&plus;C_%7B1%7D%5Cbigtriangledown%20z&plus;C_%7B2%7D%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%2C%20where%20%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%3E0) -->
 to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. C<sub>0</sub> is equal to the y-intercept in the linear regression. `C0=1.09` was calculated using the formula presented in the Patton et al. paper where average soil thickness \bar{h} can be derived from the general equation 
 
 $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}$$
@@ -100,6 +105,15 @@ $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}
 
 C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitiviity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$. Using the values from the most similar site tested (Coos Bay) $C_1 = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) = 3.522$.
 
-C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 * ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians. Using _(#?)_ as $h_1$, C<sub>2</sub> is determined to be 0.5.
+C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians. Using _(#?)_ as $h_1$, C<sub>2</sub> is determined to be 0.5.
 
 For soil depth compuation `sca` is additionally converted to `ca` by multiplying `sca` by its own resolution _(still confused... what is sca and ca stand for???)_.
+
+
+### 2.4.2 Adjusting Soil Depth Around Roads
+
+Using the filled DEM created with the mentioned inpainting in section 2.3, a layer is created to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are set to zero using the `infel` function to remove unrealistic values from the layer. Maximum soil depth is extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be (preferred/ chosen) in the new layer created. This new layer then represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated solely from the _(original DEM?? thought maybe filled DEM??? why go through trouble of finding adjacent soil to roads etc)_
+
+
+## 2.5 Extract Soil Properties
+
