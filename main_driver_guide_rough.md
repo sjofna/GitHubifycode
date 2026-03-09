@@ -147,7 +147,10 @@ Soil texture class can optionally be computed with the `soil_texture` function. 
 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
-![Soil Classifcation Triangle (Hoffmann, 2026)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/b1c355fd-d91b-43f0-9aee-395d4b43241e/ldr3121-fig-0002-m.jpg)
+
+<img width="1067" height="983" alt="image" src="https://github.com/user-attachments/assets/9309a05b-dc2a-470f-b86a-d607cff53a60" />
+
+_Soil Classifcation Triangle (Corral-Pazos-de-Provenset al., 2018)_
 
 
 ## 2.6 Calculate Shear Strength
@@ -156,9 +159,13 @@ Soil texture class can optionally be computed with the `soil_texture` function. 
 
 To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The function `get_vfs` utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
 
-![Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/165fa15d-24a8-4ee0-97d1-2d9ac52b7ae1/ldr3121-fig-0001-m.jpg)
+<img width="1486" height="982" alt="image" src="https://github.com/user-attachments/assets/ff238c5b-c5ba-4716-859c-f5800fc57819" />
 
-![Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/92713876-aafc-4ba0-9efd-574b04bc2f5a/ldr3121-fig-0006-m.jpg)
+Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)
+
+<img width="1073" height="981" alt="image" src="https://github.com/user-attachments/assets/5495af72-588e-4d6d-9038-0aab09f9f94a" />
+
+Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018) 
 
 Based on which classification is best represented by each model, the corresponding model is chosen to calculate the fraction of very fine sand. 
 
@@ -171,3 +178,7 @@ Based on which classification is best represented by each model, the correspondi
 
 Fine sand and coarse sand are calculated based on the research done by [Panagos et al. (20140](#https://www.sciencedirect.com/science/article/pii/S0048969714001727?via%3Dihub). This function `get_fs` and `get_cs` are the same as the ESDAC model from the function above which indicates that fine sand and coarse sand can be represented with the equation $( \frac{1}{5} \times \mathrm sand )$ as they and very fine sand represent one of five equal subcategories of sand. 
 
+
+### 2.6.2 Calculating Shear Strength Parameters
+
+Based on soil parameters calculated in sections indicated in 2.5 and 2.6.1, internal fraction and cohesion can be calulated with the functions `int_friction` and `unsat_cohesion`, respectively. There are two options of methods that can be used in the function `int_friction`. When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrn very Fine Sand^2)$. **_(when use which method??)_** The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1155/2022/2122554) for calulating the angle of internal friction. With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_sand) + silt * log10(D_silt) + clay * log10(D_clay) )$
