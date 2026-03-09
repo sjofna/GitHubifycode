@@ -145,23 +145,29 @@ This function is used to extract sand and clay percentages from layer depths of 
 
 Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the image below. 
 
-![Soil Classifcation Triangle (Hoffmann, 2026)}(https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
+![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
-![Soil Classifcation Triangle (Hoffmann, 2026)}(https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/b1c355fd-d91b-43f0-9aee-395d4b43241e/ldr3121-fig-0002-m.jpg)
+![Soil Classifcation Triangle (Hoffmann, 2026)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/b1c355fd-d91b-43f0-9aee-395d4b43241e/ldr3121-fig-0002-m.jpg)
 
 
 ## 2.6 Calculate Shear Strength
 
-To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The model utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
+### 2.6.1 Calculating Sand Subfractions
 
-[!Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/92713876-aafc-4ba0-9efd-574b04bc2f5a/ldr3121-fig-0006-m.jpg)
+To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The function `get_vfs` utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
+
+![Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/165fa15d-24a8-4ee0-97d1-2d9ac52b7ae1/ldr3121-fig-0001-m.jpg)
+
+![Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/92713876-aafc-4ba0-9efd-574b04bc2f5a/ldr3121-fig-0006-m.jpg)
+
+Based on which classification is best represented by each model, the corresponding model is chosen to calculate the fraction of very fine sand. 
+
+> The RUSLE2 model formula uses the formula $[(0.74 -0.62 \times \mathrm sand) \times \mathrm sand ]$
+>
+> The ESDAC model uses the formula $( \frac{1}{5} \times \mathrm sand )$
+>
+> The Shirazi–Boersma model uses the function $[\Phi (0.698810 + 0.812098 \times \Phi^{-1}( 1 - \mathrm sand)) - 1 + \mathrm sand]$
 
 
-<!-- idx_rusle2 <- texture %in% c(2, 3) & !na_idx
-    vfs[idx_rusle2] <- RUSLE2_model(sand[idx_rusle2])
-    
-    idx_esdac <- texture %in% c(1, 4, 6, 7, 8, 10, 11, 12) & !na_idx
-    vfs[idx_esdac] <- ESDAC_model(sand[idx_esdac])
-    
-    idx_sb <- texture %in% c(5, 9) & !na_idx
-    vfs[idx_sb] <- SB_model(sand[idx_sb]) -->
+Fine sand and coarse sand are calculated based on the research done by [Panagos et al. (20140](#https://www.sciencedirect.com/science/article/pii/S0048969714001727?via%3Dihub). This function `get_fs` and `get_cs` are the same as the ESDAC model from the function above which indicates that fine sand and coarse sand can be represented with the equation $( \frac{1}{5} \times \mathrm sand )$ as they and very fine sand represent one of five equal subcategories of sand. 
+
