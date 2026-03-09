@@ -126,15 +126,15 @@ $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}
 
 C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitiviity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$. <!--Using the values from the most similar site tested (Coos Bay) $C_1 = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) = 3.522$.-->
 
-C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians. Using _(#?)_ as $h_1$, C<sub>2</sub> is determined to be 0.5.
+C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians.
 
-For soil depth compuation `sca` (Specific Catchment Area) is additionally converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and depsoition due to flow dynamics. CA is converted from SCA instead of calculated as SCA is ... 
+For soil depth compuation `sca` (Specific Catchment Area) is additionally converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and depsoition due to flow dynamics. 
 <!--SCA and CA are Specific Catchment Area and Specific Catchment, respectively. They are both variables used to represent drainage. CA is, for any given cell in a DEM, the total area of all upslope cells that would in theory be draining into it. SCA, for any given cell in a dem, provides an idea of the discharge, or potential concentration of flow, per unit flow width, due to upslope cells. Basically, SCA accounts for the fact that in a DEM each pixel covers some amount of area and is not just an infinitely small point. This allows us to consider the fact that overland flow would be diffused across the width of a cell (water spread out) and not just stacked in some infinitely thin line of flow that spans the length of the cell. This gives a better idea of the erosive capability of water flowing over any given point within a DEM cell. This is all to say that SCA is CA divided by the width of a pixel, so therefore CA is SCA times the width of a pixel. The reason I calculate SCA first then convert to CA is because SCA is more commonly used and there are better algorithms out there for calculating it. Anyway, SCA in particular can be a confusing concept but it is widely used so you don't need to go into too much detail about it-->
 
 
 ### 2.4.2 Adjusting Soil Depth Around Roads
 
-Using the filled DEM created with the mentioned inpainting in section 2.3, a layer is created to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are set to zero using the `infel` function to remove unrealistic values from the layer. Maximum soil depth is extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be (preferred/ chosen) in the new layer created. This new layer then represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated solely from the _(original DEM?? thought maybe filled DEM??? why go through trouble of finding adjacent soil to roads etc)_.
+Using the filled DEM created with the mentioned inpainting in section 2.3, a layer is created to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are set to zero using the `infel` function to remove unrealistic values from the layer. Maximum soil depth is extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be (preferred/ chosen) in the new layer created. This new layer then represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated solely from inpainted and detrended DEM.
 
 
 ## 2.5 Extract Soil Properties
@@ -145,9 +145,23 @@ This function is used to extract sand and clay percentages from layer depths of 
 
 Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the image below. 
 
-![Soil Classifcation Traingle (Hoffmann, 2026)}(https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
+![Soil Classifcation Triangle (Hoffmann, 2026)}(https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
+
+![Soil Classifcation Triangle (Hoffmann, 2026)}(https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/b1c355fd-d91b-43f0-9aee-395d4b43241e/ldr3121-fig-0002-m.jpg)
 
 
 ## 2.6 Calculate Shear Strength
 
-To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121) which utilizes the 
+To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The model utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
+
+[!Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/cms/asset/92713876-aafc-4ba0-9efd-574b04bc2f5a/ldr3121-fig-0006-m.jpg)
+
+
+<!-- idx_rusle2 <- texture %in% c(2, 3) & !na_idx
+    vfs[idx_rusle2] <- RUSLE2_model(sand[idx_rusle2])
+    
+    idx_esdac <- texture %in% c(1, 4, 6, 7, 8, 10, 11, 12) & !na_idx
+    vfs[idx_esdac] <- ESDAC_model(sand[idx_esdac])
+    
+    idx_sb <- texture %in% c(5, 9) & !na_idx
+    vfs[idx_sb] <- SB_model(sand[idx_sb]) -->
