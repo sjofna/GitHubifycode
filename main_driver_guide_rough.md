@@ -181,4 +181,36 @@ Fine sand and coarse sand are calculated based on the research done by [Panagos 
 
 ### 2.6.2 Calculating Shear Strength Parameters
 
-Based on soil parameters calculated in sections indicated in 2.5 and 2.6.1, internal fraction and cohesion can be calulated with the functions `int_friction` and `unsat_cohesion`, respectively. There are two options of methods that can be used in the function `int_friction`. When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrn very Fine Sand^2)$. **_(when use which method??)_** The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1155/2022/2122554) for calulating the angle of internal friction. With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_sand) + silt * log10(D_silt) + clay * log10(D_clay) )$
+Based on soil parameters calculated in sections indicated in 2.5 and 2.6.1, internal fraction and cohesion can be calulated with the functions `int_friction` and `unsat_cohesion`, respectively. 
+
+There are two options of methods that can be used in the function `int_friction`. 
+When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
+<!-- when use which method?? -->
+<!-- also where is the GMD equation??? wanna make sure its the right source ig... idk im just confused @ teh equation-->
+The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1155/2022/2122554) for calulating the angle of internal friction. With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_{sand}) + silt * log10(D_{silt}) + clay * log10(D_{clay}) )$. D represents the dominant grain size **_(d<sub>50</sub>??)_** of the sand, silt and clay. <!-- ?? -->
+
+Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006). The to calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize that to zero.
+
+
+## 2.7 Hydrology
+
+Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed eariler with the `get_soilgrids` function.
+
+### 2.7.1 Calculating K<sub>sat</sub>
+To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function allows two methods; rosetta which assign K<sub>sat</sub> based on [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](#https://doi.org/10.1111/ejss.12192).
+The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil ([Simons et al., 2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the wrong units it is further derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
+
+Transimissivity is then calulated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section 2.4. <!-- function needs to be fixed so skip expanation for now? -->
+
+
+> [!TIP]
+> The code will prompt the user to clean menory using `rm` and `gc` functions. Do this to keep memory clear and computing power minimal.
+
+
+### 2.7.2 Calibrating K<sub>sat</sub>
+ <!-- work in progress code -->
+ CALIBRATING KSAT FOR STRUCTURAL INFLUENCE USING MODIS NPP
+ based on:  https://doi-org.ezproxy.library.uvic.ca/10.1029/2022GL100389 and https://doi.org/10.1038/s43247-021-00180-0
+ - using RGEE
+ -    ensure set up properly
+ -    
