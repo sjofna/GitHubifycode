@@ -49,7 +49,7 @@ Ensure that all additional scripts are downloaded and file path names have been 
 
 ### 1.3 Set File Paths
 
-This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` can also be used _(reason??)_
+This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` are set up as to not polute the main output path with temporary files.
 
 
 ---
@@ -61,13 +61,14 @@ This next few sections of code lays the groundwork for later functions. Calculat
 
 ### 2.1 Slope Calculation
 
-Slope is derived from the called in digital elevation model (DEM) using the `terra::terrain(dem, "slope")` function.
+Slope is derived from the called in digital elevation model (DEM) using the `terra::terrain(dem, "slope")` function. The output here is in degrees.
 
 
 ### 2.2 Well Data
 
 Well data is needed for later calulation of soil depths. As well data includes distance to bedrock, this can be used as the maximum possible soil depth that can be calulated.
-Well data is cleaned to remove unwanted collumns before being converted to a vector file. A 8000m buffer is also created around the points to **_(???)_**. 
+Well data is cleaned to remove unwanted collumns before being converted to a vector file. A 8000m buffer is also created around the points to ... 
+<!-- why 8000m specifically?? -->
 
 Additional plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
 
@@ -215,4 +216,84 @@ Transimissivity is then calulated by multiplying K<sub>sat</sub> by soil depth e
 ### 2.7.2 Calibrating K<sub>sat</sub>
  <!-- work in progress code -->
 
-This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the Modis NPP based on findings by [Fan et al. (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1029/2022GL100389) and [Bonetti et al., 2021](#https://doi.org/10.1038/s43247-021-00180-0). This method utilizes RGEE and requires Earth engine to be set up properly to function.    
+This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1029/2022GL100389) and [Bonetti et al., 2021](#https://doi.org/10.1038/s43247-021-00180-0). 
+<!-- NPP represents the potential of the soil to support biological activity depending on the biome it is located. -->
+This method utilizes RGEE and requires Earth engine to be set up properly to function. Using Earth Engine, the NPP for the target area is extracted and clipped to the target area.
+
+To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from $(kg C m^{-2} yr^{-1}$ to $g C m^-1 yr-1 (*1000))$. 
+With this the K<sub>sat</sub> factor becomes 
+
+$$ratio_{max} - ((ratio_{max} - 1) \div (1 + (\frac{NPP}{p})^q))$$
+where $ratio_{max}=10^{3.5 - 1.5 \times sand%^0.13}$ <!-- markdown doesnt like this last equation-->
+
+K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
+
+## 2.8 Calculating Normal Recharge 
+
+### 2.8.1 With PCIC Data
+
+PCIC (Pacific Climate Impacts Consortium) data contains meteorlogical data that will be used to extract climate normals with a particular focus on normal precipation in the target study area.
+
+PCIC data is regionally specific data. If the target region is outside of this region, alternative data sources would be necessary to complete this step.
+
+Average precipation data is extracted from the accessed CSV file over the last 30 years and the data's resolution <!--(do i need to know what 0.08333 or 0.1 deg means in this?--> is extracted to create a raster template for the data. Datapoints from the PCIC data are transfered onto this raster, converted to meters per hour, and rasterized _(across the whole are?)_. The 90th and 10th percentiles of this climate data are also extracted from the original datset.
+
+
+## 2.9 Soil Density
+
+Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method based on [???](#???) to assign volumetric water content in the soil based on its texture class. This model used the density of quartz which is $2650kg/m^3$.
+
+
+## 2.10 Root Cohesion
+
+
+## 2.11 Wildfire Effects
+
+
+### 2.11.1 Burn Severity
+
+
+### 2.11.2 Uncertainty
+
+
+
+## 3. Landslide Probability 
+
+Calculated parameters from the sectiosn prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell where as bulk density and recharge are defined as constants.
+
+
+### 3.1 Factor Safety
+The factor of safety (Fs) defines the balance between resisting and driving forces on a slope.
+
+$$Fs = \frac {F_{resisting}}{F_{driving}}$$
+
+When this fraction is below 1 the tehroetical risk of the slope failing is high. If the fraction is above 1, the slope is theoretically stable and at a lwo risk of failing. This equation to determine the factor of safety can be expanded out to 
+
+<img width="361" height="342" alt="image" src="https://github.com/user-attachments/assets/a1148db8-ed71-4755-967a-98b97a40aeff" />
+
+or
+
+$$Fs = \frac{coh}{Y`_e \times Depth_{soil} \times Angle_{slope}} + ( 1 - (wetness) \times \frac {Y_w}{Y_e}) \frac{tan(FA)}{tan(slope angle)}$$
+Screen shot 2014-12-04 at 5.42.48 PM
+<!-- Fs : Factor of Safety (FS) = resisting forces/driving forces; a FS under 1 means that the slope is at risk of failure, a FS above 1 means that the slope is most probably stable.
+
+C’ : Cohesion (kN/m^2)
+
+ϒe : effective unit weight of material = (1-m)ϒdry + mϒsat (where  Ydry is dry unit weight of the material, where Ysat is saturated unit of the material (N/m^3))
+
+H : Soil depth
+
+β : slope angle = “Slope”
+
+m : wetness index
+
+ϒw : Saturated (wet) unit weight of material
+
+Φ’’ : angle of internal friction  [degrees] -->
+
+Other parameters such as $sin$ of the slope angle and wetness are also required when determining the factor of safety. 
+As slope was initially calulated in degrees, it must first be calculated into radians before its $sin$ is calculated.
+Wetness is claulated as a function of recharge, transmissivity, SCA and the claculated $sin(slope)$.
+
+
+### 3.2 Optional Manual Options
