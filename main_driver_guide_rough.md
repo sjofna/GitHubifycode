@@ -246,12 +246,19 @@ Soil bulk density is calculated with the `bulk_density` function. This function 
 
 ## 2.10 Root Cohesion
 
+Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector a theoretical stand maximum is set based off of regional maximuma. A theoretical root cohesion value is also set. 
+
+>This is also regionally determined with numbers being sources from studies such as from[Schmidt et al, (2021)](#https://doi.org/10.1139/t01-031), [Sakals & Sidle (2004)](#https://doi.org/10.1139/x03-268), and [Burroughs & Thomas (1977).
+
+<!-- finish root cohesion section-->
+
 
 ## 2.11 Wildfire Effects
 
 
 ### 2.11.1 Burn Severity
 
+To calulate burn severity, the difference normalized burn ration (DNBR) data is extracted using the Rgee package. The data is clipped to the area of interest and then rescaled to the BARC256 <!-- which is?--> for classifcation.
 
 ### 2.11.2 Uncertainty
 
