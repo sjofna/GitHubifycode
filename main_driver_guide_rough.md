@@ -263,56 +263,52 @@ To calculate burn severity, the difference normalized burn ration (dNBR) data is
 > [!IMPORTANT]
 > [This dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation) is a Canadian dataset. If the target region is not in Canada, alternative data will need to be accessed.
 
-The data is clamped to the area of interest and then rescaled to the BARC256 for classifcation. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. These rescaled values are additionally clamped from 0 to 255 for classifcation purposes.
-
-<!-- ... more i think here, this is where i left off -->
-
+The data is clamped to the area of interest and then rescaled to the BARC256 for classifcation. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. These rescaled values are additionally clamped from 0 to 255 and classified based on the BAR256 system. 
 
 > [!NOTE]
 > What is BARC256? -> "The normalized_burn_ratio (NBR) is used to assess a fire’s severity"/"BAER 8-bit datasets contain unclassified values of for use by BAER teams in the field. These datasets are referred to as BARC-256 by federal agencies."[(source)](#https://landscapetoolbox.org/remote-sensing-methods/burned-area-reflectance-classification-barc/) <!-- leave out or put in?-->
 
 
-### 2.11.1 Modifiers
+Burn year data is also an excellent tool for assessing burning of the target area at a specific time. By extracting burn year from the same projects as dNBR, a fire perimeter can be extracted based on the year of inetrest (2018 here) and burn severity of that season can be assessed using the function `dnbr_classified$clip(fire_perim)`. 
 
+> [!NOTE]
+> The task initiated prompts the user to export a burn severity raster to their Google Drive. After the file is properly uploaded it will need to be redownloaded and called in. Processing time for exporting the file this way are significantly shorter than attemting to save directly to the harddrive __*(I assume thats why it is done this way??)*__
+
+
+### 2.11.1 Modifier Layers
+
+The burn severity output raster is uutilized in this section of code to modify hydraulic condiuctivity (K<sub>sat</sub>) and root cohesion. 
+
+The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](#https://doi.org/10.1016/j.enggeo.2024.107538),[Abdollahi et al. (2023)}(#https://doi.org/10.1029/2022EF003213), and [Ebel & Moody (2020)](#https://doi.org/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity. These classifications are based on the BARC256 classifcation.
+
+Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](#https://doi.org/10.1016/j.enggeo.2024.107538) and [Abdollahi et al. (2023)}(#https://doi.org/10.1029/2022EF003213). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and decreased 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction wasassumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during a fire, the 25% and 80% decrease will be utlized by the code to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
 
 
 ### 2.11.2 Uncertainty
 
+This section is optional however will allow for assessment of uncertainty in later calculated probality values. Minimum, maximum and standard devation values are caluclated for layers including friction angle, transmissivity, soil cohesion, root cohesion, soil depth, (bulk density) and (recharge). 
 
 
 ## 3. Landslide Probability 
 
-Calculated parameters from the sectiosn prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell where as bulk density and recharge are defined as constants.
+Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell, where as bulk density and recharge are defined as constants.
 
 
 ### 3.1 Factor Safety
+
 The factor of safety (Fs) defines the balance between resisting and driving forces on a slope.
 
 $$Fs = \frac {F_{resisting}}{F_{driving}}$$
 
-When this fraction is below 1 the tehroetical risk of the slope failing is high. If the fraction is above 1, the slope is theoretically stable and at a lwo risk of failing. This equation to determine the factor of safety can be expanded out to 
+When this fraction is below 1 the tehroetical risk of the slope failing is high. If the fraction is above 1, the slope is theoretically stable and at a lwo risk of failing. This equation used to determine the factor of safety in the package is
 
-<img width="361" height="342" alt="image" src="https://github.com/user-attachments/assets/a1148db8-ed71-4755-967a-98b97a40aeff" />
+$$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_w}{bulk.density})) \times tan(FA))}{sin(slope)}$$
 
-or
-
-$$Fs = \frac{coh}{Y`_e \times Depth_{soil} \times Angle_{slope}} + ( 1 - (wetness) \times \frac {Y_w}{Y_e}) \frac{tan(FA)}{tan(slope angle)}$$
-Screen shot 2014-12-04 at 5.42.48 PM
-<!-- Fs : Factor of Safety (FS) = resisting forces/driving forces; a FS under 1 means that the slope is at risk of failure, a FS above 1 means that the slope is most probably stable.
-
-C’ : Cohesion (kN/m^2)
-
-ϒe : effective unit weight of material = (1-m)ϒdry + mϒsat (where  Ydry is dry unit weight of the material, where Ysat is saturated unit of the material (N/m^3))
-
-H : Soil depth
-
-β : slope angle = “Slope”
-
-m : wetness index
-
-ϒw : Saturated (wet) unit weight of material
-
-Φ’’ : angle of internal friction  [degrees] -->
+> $cohesion^*$ is defined by `cohesion_s * 1000 + cohesion_r * 1000) / (bulk_density * g * soil_depth`
+>
+> $wetness$ is defined bya precomputed value or a function of `(R, transmissivity, sca, sin_slope)`
+>
+> $density_w$ is the density of water in kg/m<sup>3</sup> which is 1000.
 
 Other parameters such as $sin$ of the slope angle and wetness are also required when determining the factor of safety. 
 As slope was initially calulated in degrees, it must first be calculated into radians before its $sin$ is calculated.
@@ -320,3 +316,6 @@ Wetness is claulated as a function of recharge, transmissivity, SCA and the clac
 
 
 ### 3.2 Optional Manual Options
+
+
+<!-- add notes in for extra -->
