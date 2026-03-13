@@ -79,15 +79,8 @@ To conduct road filling, the vector road file is called in, a 15m buffer is crea
 
 The `inpaint_nans` function was developed by [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was simialrly used by [Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) and has been shown to reliably re-construct tropography from high resolution DTMs for eomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case representing former roads) using edge information. The function for method ‘0’, a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy (Harris et al., 2020) and scipy (Virtanen et al., 2020) and then applied as a function in R using the package reticulate (Ushey et al., 2025).
 
-Digital image inpainting approaches can be grouped into three categories: 
-
-   (i) patch-based
-
-   (ii) sparse
-
-   (iii) partial differential equations/variational methods 
-   
-The inpainting algorithm we apply in this paper uses a PDE model to simulate a heat diffusion process. The accuracy of this inpainting technique is compared to the results of commonly used void-filling interpolation algorithms for a complex alpine test area. Void-filling performance, in particular, is evaluated quantitatively by means of statistical metrics (Reuter et al.2007) but also from a geomorphometric point of view.
+<!--"Digital image inpainting approaches can be grouped into three categories: (i) patch-based, (ii) sparse and (iii) partial differential equations/variational methods 
+The inpainting algorithm applied uses a PDE model to simulate a heat diffusion process. The accuracy of this inpainting technique is compared to the results of commonly used void-filling interpolation algorithms for a complex alpine test area. Void-filling performance, in particular, is evaluated quantitatively by means of statistical metrics (Reuter et al.2007) but also from a geomorphometric point of view.[(Crema et al., 2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK)" -->
 
 The detrending function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, however, this surface is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DTM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
 
@@ -241,24 +234,47 @@ Average precipation data is extracted from the accessed CSV file over the last 3
 
 ## 2.9 Soil Density
 
-Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method based on [???](#???) to assign volumetric water content in the soil based on its texture class. This model used the density of quartz which is $2650kg/m^3$.
+Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method based on [???](#https://github.com/usda-ars-ussl/rosetta-soil) to assign volumetric water content in the soil based on its texture class. This model uses the density of quartz which is $2650kg/m^3$. Assumed density differs regionally and may change depending on the target area <!-- fact check?-->.
+
+With a density of $2650kg/m^3$ as the assumed density, `bulk_density` becomes a function of $(density_{assumed} \times (1 - v)$. '$v$' represents theta_s ($\theta _s$). This value represents saturated volumetric water content which is dependant on the soil texture class.
 
 
 ## 2.10 Root Cohesion
 
-Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector a theoretical stand maximum is set based off of regional maximuma. A theoretical root cohesion value is also set. 
+Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data (cite?). A theoretical maximum root cohesion value is also set based on region. 
 
->This is also regionally determined with numbers being sources from studies such as from[Schmidt et al, (2021)](#https://doi.org/10.1139/t01-031), [Sakals & Sidle (2004)](#https://doi.org/10.1139/x03-268), and [Burroughs & Thomas (1977).
+>Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://doi.org/10.1139/t01-031), [Sakals & Sidle (2004)](#https://doi.org/10.1139/x03-268), and [Burroughs & Thomas (1977).
 
-<!-- finish root cohesion section-->
+With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
+
+```
+sbfi$COHESION <- as.numeric((sbfi$STRUCTURE_BASAL_AREA_AVG / BA_max) * root_cohesion)
+```
+
+The cohesion is then rasterized and clamped between zero and the set maximum root cohesion for later computations.
 
 
 ## 2.11 Wildfire Effects
 
+The main effect of wildfires calculated in this section is burn severity. 
 
-### 2.11.1 Burn Severity
+To calculate burn severity, the difference normalized burn ration (dNBR) data is extracted through Google Earth Engine using the RGEE package. 
 
-To calulate burn severity, the difference normalized burn ration (DNBR) data is extracted using the Rgee package. The data is clipped to the area of interest and then rescaled to the BARC256 <!-- which is?--> for classifcation.
+> [!IMPORTANT]
+> [This dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation) is a Canadian dataset. If the target region is not in Canada, alternative data will need to be accessed.
+
+The data is clamped to the area of interest and then rescaled to the BARC256 for classifcation. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. These rescaled values are additionally clamped from 0 to 255 for classifcation purposes.
+
+<!-- ... more i think here, this is where i left off -->
+
+
+> [!NOTE]
+> What is BARC256? -> "The normalized_burn_ratio (NBR) is used to assess a fire’s severity"/"BAER 8-bit datasets contain unclassified values of for use by BAER teams in the field. These datasets are referred to as BARC-256 by federal agencies."[(source)](#https://landscapetoolbox.org/remote-sensing-methods/burned-area-reflectance-classification-barc/) <!-- leave out or put in?-->
+
+
+### 2.11.1 Modifiers
+
+
 
 ### 2.11.2 Uncertainty
 
