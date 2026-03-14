@@ -293,6 +293,7 @@ This section is optional however will allow for assessment of uncertainty in lat
 
 Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell, where as bulk density and recharge are defined as constants.
 
+<!-- need to complete landslide probability section, really look at code and try to figure out wtf is going on -->
 
 ### 3.1 Factor Safety
 
@@ -304,15 +305,14 @@ When this fraction is below 1 the tehroetical risk of the slope failing is high.
 
 $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_w}{bulk.density})) \times tan(FA))}{sin(slope)}$$
 
-> $cohesion^*$ is defined by `cohesion_s * 1000 + cohesion_r * 1000) / (bulk_density * g * soil_depth`
+> $cohesion^*$ is defined by $(\frac{coh \times 1000 + coh_r \times 1000)}{(bulk.density \times g \times depth_{soil})}$
+> with $g$ representing the acceleration of gravity at 9.81m/s<sup>2</sup>.
 >
-> $wetness$ is defined bya precomputed value or a function of `(R, transmissivity, sca, sin_slope)`
+> $wetness$ is defined by a precomputed value or a function of $(\frac{R}{transmissivity} \times \frac{sca}{sin(slope)})$ where $R$ is the computed recharge rate at m/hr. Thes values clamped between 0 and 1.
 >
 > $density_w$ is the density of water in kg/m<sup>3</sup> which is 1000.
 
-Other parameters such as $sin$ of the slope angle and wetness are also required when determining the factor of safety. 
-As slope was initially calulated in degrees, it must first be calculated into radians before its $sin$ is calculated.
-Wetness is claulated as a function of recharge, transmissivity, SCA and the claculated $sin(slope)$.
+
 
 
 ### 3.2 Optional Manual Options
