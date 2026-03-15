@@ -293,15 +293,15 @@ This section is optional however will allow for assessment of uncertainty in lat
 
 Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell, where as bulk density and recharge are defined as constants.
 
-<!-- need to complete landslide probability section, really look at code and try to figure out wtf is going on -->
 
 ### 3.1 Factor Safety
 
+<!-- factor of safety also isnt mentioned in the main driver just in the landslide prob r file.. do i explain or not?-->
 The factor of safety (Fs) defines the balance between resisting and driving forces on a slope.
 
 $$Fs = \frac {F_{resisting}}{F_{driving}}$$
 
-When this fraction is below 1 the tehroetical risk of the slope failing is high. If the fraction is above 1, the slope is theoretically stable and at a lwo risk of failing. This equation used to determine the factor of safety in the package is
+When this fraction is below 1 the theoretical risk of the slope failing is high. If the fraction is above 1, the slope is theoretically stable and at a low risk of failing. This equation used to determine the factor of safety in the package is:
 
 $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_w}{bulk.density})) \times tan(FA))}{sin(slope)}$$
 
@@ -313,9 +313,49 @@ $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_
 > $density_w$ is the density of water in kg/m<sup>3</sup> which is 1000.
 
 
+### 3.2 Landslide Probability
+
+To calculate landslide probability, the previously (created) spatial rasters for friction angle `FA`, transmissivity `transmissivity`, Specific Catchment Area `sca`, soil cohesion `coh`, root cohesion `coh_r`, and soil depth `soil_depth` are utilized to calculate landslide probability with the function
+
+```
+prob_of_failure <- landslide_probability(
+  slope = slope,
+  friction_angle = FA,
+  bulk_density = bulk_density,
+  transmissivity = transmiss,
+  sca = sca,
+  cohesion_s = coh,
+  cohesion_r = coh_r,
+  soil_depth = soil_depth,
+  R = recharge,
+  perturb_var = c(
+    "friction_angle",
+    "cohesion_s"
+    ),
+  perturb_settings = list(
+    friction_angle = list(sd = 10, min = 5, max = 60),
+    cohesion_s     = list(sd = 3,  min = 0, max = 30),
+    cohesion_r     = list(sd = 3, min = 0, max = 20),
+    transmissivity = list(sd = 0.5, min = 0, max = 10),
+    soil_depth     = list(sd = 0.5, min = 0, max = 10),
+    bulk_density   = list(sd = 100, min = 800, max = 2200),
+    R              = list(sd = 0.00005, min = 0.00001, max = 0.001)), 
+  n_bins = 50,
+  random_within_bins = TRUE,
+  intermediates = FALSE,
+  alpha = 5
+)
+```
+
+> [!IMPORTANT]
+> For the fuction to operate without error all inputs must be true, spatial rasters and have the same resolution, CRS and extents. If these requirements are not met a error message with pop up.
+
+In the function `landslide_probability` above, bulk density and recharge are provided as constants <!--(why? I thought they were rasters also?)-->. 
+
+`perturb_settings` (...)
 
 
-### 3.2 Optional Manual Options
+### 3.3 Optional Manual Options
 
 
 <!-- add notes in for extra -->
