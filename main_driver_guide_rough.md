@@ -162,7 +162,7 @@ Soil texture class can optionally be computed with the `soil_texture` function. 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
 
-<img width="1067" height="983" alt="image" src="https://github.com/user-attachments/assets/9309a05b-dc2a-470f-b86a-d607cff53a60" />
+<img width="800" height="737" alt="image" src="https://github.com/user-attachments/assets/9309a05b-dc2a-470f-b86a-d607cff53a60" />
 
 _Soil Classifcation Triangle (Corral-Pazos-de-Provenset al., 2018)_
 
@@ -173,13 +173,13 @@ _Soil Classifcation Triangle (Corral-Pazos-de-Provenset al., 2018)_
 
 To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The function `get_vfs` utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
 
-<img width="1486" height="982" alt="image" src="https://github.com/user-attachments/assets/ff238c5b-c5ba-4716-859c-f5800fc57819" />
+<img width="1000" height="661" alt="image" src="https://github.com/user-attachments/assets/ff238c5b-c5ba-4716-859c-f5800fc57819" />
 
-Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)
+_Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)_
 
-<img width="1073" height="981" alt="image" src="https://github.com/user-attachments/assets/5495af72-588e-4d6d-9038-0aab09f9f94a" />
+<img width="650" height="594" alt="image" src="https://github.com/user-attachments/assets/5495af72-588e-4d6d-9038-0aab09f9f94a" />
 
-Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018) 
+_Model preference based on soil classification (Corral-Pazos-de-Provenset al., 2018)_
 
 Based on which classification is best represented by each model, the corresponding model is chosen to calculate the fraction of very fine sand. 
 
@@ -198,12 +198,12 @@ Fine sand and coarse sand are calculated based on the research done by [Panagos 
 Based on soil parameters calculated in sections indicated in 2.5 and 2.6.1, internal fraction and cohesion can be calulated with the functions `int_friction` and `unsat_cohesion`, respectively. 
 
 There are two options of methods that can be used in the function `int_friction`. 
-When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
+When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
 <!-- when use which method?? -->
 <!-- also where is the GMD equation??? wanna make sure its the right source ig... idk im just confused @ teh equation-->
-The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1155/2022/2122554) for calulating the angle of internal friction. With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_{sand}) + silt * log10(D_{silt}) + clay * log10(D_{clay}) )$. D represents the dominant grain size **_(d<sub>50</sub>??)_** of the sand, silt and clay. <!-- ?? -->
+The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1155/2022/2122554) for calulating the angle of internal friction. With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_{sand}) + silt * log10(D_{silt}) + clay * log10(D_{clay}) )$. D represents the dominant grain size **_(d<sub>50</sub>??)_** of the sand, silt and clay. <!-- ?? -->
 
-Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://doi.org/10.1016/j.still.2018.07.006). The to calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize that to zero.
+Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub). The to calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize that to zero.
 
 
 ## 2.7 Hydrology
@@ -211,7 +211,7 @@ Cohesion is calculated as a function of the subfractions of clay, coarse sand an
 Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed eariler with the `get_soilgrids` function.
 
 ### 2.7.1 Calculating K<sub>sat</sub>
-To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function allows two methods; rosetta which assign K<sub>sat</sub> based on [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](#https://doi.org/10.1111/ejss.12192).
+To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function allows two methods; rosetta which assign K<sub>sat</sub> based on [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](#https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
 The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil ([Simons et al., 2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the wrong units it is further derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
 
 Transimissivity is then calulated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section 2.4. <!-- function needs to be fixed so skip expanation for now? -->
@@ -232,7 +232,7 @@ To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from 
 With this the K<sub>sat</sub> factor becomes 
 
 $$ratio_{max} - ((ratio_{max} - 1) \div (1 + (\frac{NPP}{p})^q))$$
-where $ratio_{max}=10^{3.5 - 1.5 \times sand%^0.13}$ <!-- markdown doesnt like this last equation-->
+where $ratio_{max} = 10^{3.5 - (1.5 \times sand%^{0.13})}$ <!-- markdown doesnt like this last equation-->
 
 K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
 
@@ -256,7 +256,7 @@ With a density of $2650kg/m^3$ as the assumed density, `bulk_density` becomes a 
 
 Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data (cite?). A theoretical maximum root cohesion value is also set based on region. 
 
->Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977).
+Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977).
 
 With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
 
@@ -273,28 +273,25 @@ The main effect of wildfires calculated in this section is burn severity.
 
 To calculate burn severity, the difference normalized burn ration (dNBR) data is extracted through Google Earth Engine using the RGEE package. 
 
-> [!IMPORTANT]
-> [This dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation) is a Canadian dataset. If the target region is not in Canada, alternative data will need to be accessed.
+It should be noted that [this dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation) is a Canadian dataset. If the target region is not in Canada, alternative data will need to be accessed.
 
 The data is clamped to the area of interest and then rescaled to the BARC256 for classifcation. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. These rescaled values are additionally clamped from 0 to 255 and classified based on the BAR256 system. 
 
-> [!NOTE]
-> What is BARC256? -> "The normalized_burn_ratio (NBR) is used to assess a fire’s severity"/"BAER 8-bit datasets contain unclassified values of for use by BAER teams in the field. These datasets are referred to as BARC-256 by federal agencies."[(source)](#https://landscapetoolbox.org/remote-sensing-methods/burned-area-reflectance-classification-barc/) <!-- leave out or put in?-->
-
+What is BARC256 -> "The normalized_burn_ratio (NBR) is used to assess a fire’s severity"/"BAER 8-bit datasets contain unclassified values of for use by BAER teams in the field. These datasets are referred to as BARC-256 by federal agencies."[(source)](#https://landscapetoolbox.org/remote-sensing-methods/burned-area-reflectance-classification-barc/) <!-- leave out or put in?-->
 
 Burn year data is also an excellent tool for assessing burning of the target area at a specific time. By extracting burn year from the same projects as dNBR, a fire perimeter can be extracted based on the year of inetrest (2018 here) and burn severity of that season can be assessed using the function `dnbr_classified$clip(fire_perim)`. 
 
 > [!NOTE]
-> The task initiated prompts the user to export a burn severity raster to their Google Drive. After the file is properly uploaded it will need to be redownloaded and called in. Processing time for exporting the file this way are significantly shorter than attemting to save directly to the harddrive __*(I assume thats why it is done this way??)*__
+> The task initiated prompts the user to export a burn severity raster to their Google Drive. After the file is properly uploaded it will need to be redownloaded and called in. Processing time for exporting the file this way are significantly shorter than attemting to save directly to the harddrive __*(assuming thats why it is done this way?)*__
 
 
 ### 2.11.1 Modifier Layers
 
 The burn severity output raster is uutilized in this section of code to modify hydraulic condiuctivity (K<sub>sat</sub>) and root cohesion. 
 
-The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub),[Abdollahi et al. (2023)}(#https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213), and [Ebel & Moody (2020)](#https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity. These classifications are based on the BARC256 classifcation.
+The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub), [Abdollahi et al. (2023)](#https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213), and [Ebel & Moody (2020)](#https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity. These classifications are based on the BARC256 classifcation.
 
-Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub) and [Abdollahi et al. (2023)}(#[https://doi.org/10.1029/2022EF003213](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and decreased 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction wasassumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during a fire, the 25% and 80% decrease will be utlized by the code to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
+Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub) and [Abdollahi et al. (2023)](#https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and decreased 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction wasassumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during a fire, the 25% and 80% decrease will be utlized by the code to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
 
 
 ### 2.11.2 Uncertainty
@@ -405,9 +402,9 @@ Within the andslide probability function `n_bins` is the number of equally likel
 Using this value, the cumulative probabilities of landslides using `seg(0, 1, by = 1/n_bins)`.
 The results of this function are then plotted to extract their best fit normal function which can be used to determine the distribution of landslide risk within the target region. 
 
-The output should show something similar to this: (insert image)
+The output should show something similar to this: _(insert image)_
 
 
-<!-- add notes in for extra -->
 
 ## 4. References
+<!-- hyperlink references from where theyre referenced? or could have sections of refences... want references links to be open source otherwise idk if tehy work-->
