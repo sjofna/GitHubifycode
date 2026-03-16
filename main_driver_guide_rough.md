@@ -16,7 +16,22 @@
      - [2.4 Soil Depth](#2.4-soil-depth)
      - [2.5 Extract Soil Properties](#2.5-extract-soil-properties)
      - [2.6 Calculate Shear Strength](#2.6-calculate-shear-trength)
-   - [References](#references)
+       - [2.6.1 Calculating Sand Subfractions](#2.6.1-calculating-sand-subfractions)
+       - [2.6.2 Calculating Shear Strength Parameters](#2.6.2-calculating-shear-strength-parameters)
+     - [2.7 Hydrology](#2.7-hydrology)
+       - [2.7.1 Calculating K<sub>sat</sub>](#2.7.1-calculating-ksat)
+       - [2.7.2 Calibrating K<sub>sat</sub>](#2.7.2-calibrating-ksat)
+     - [2.8 Calculating Normal Recharge with PCIC Data](#2.8-calculating-normal-recharge-with-pcic-data)
+     - [2.9 Soil Density](#2.9-soil-density)
+     - [2.10 Root Cohesion](#2.10-root-cohesion)
+     - [2.11 Wildfire Effects](#2.11-wildfire-effects)
+       - [2.11.1 Modifier Layers](#2.11.1-modifier-layers)
+       - [2.11.2 Uncertainty](#2.11.2-uncertainty)
+   - [3. Landslide Probability](#3.-landslide-probability)
+     - [3.1 Factor of Safety](#3.1-factor-of-safety)
+     - [3.2 Landslide Probability](#3.2-landslide-probability)
+     - [3.3 Optional Manual Options](#3.3-optional-manual-options)
+   - [4. References](#references)
 
 
 <!-- Describe basic package functions? -->
@@ -49,7 +64,7 @@ Ensure that all additional scripts are downloaded and file path names have been 
 
 ### 1.3 Set File Paths
 
-This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` are set up as to not polute the main output path with temporary files.
+This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` are set up as to not pollute the main output path with temporary files and allows for these files to be deleted easily as needed.
 
 
 ---
@@ -61,13 +76,13 @@ This next few sections of code lays the groundwork for later functions. Calculat
 
 ### 2.1 Slope Calculation
 
-Slope is derived from the called in digital elevation model (DEM) using the `terra::terrain(dem, "slope")` function. The output here is in degrees.
+Slope is the main topgraphic variable used in this package. It is derived from the digital elevation model (DEM) using the `terra::terrain(dem, "slope")` [function](#https://www.rdocumentation.org/packages/terra/versions/1.0-7/topics/slope). The output here is in degrees.
 
 
 ### 2.2 Well Data
 
 Well data is needed for later calulation of soil depths. As well data includes distance to bedrock, this can be used as the maximum possible soil depth that can be calulated.
-Well data is cleaned to remove unwanted collumns before being converted to a vector file. A 8000m buffer is also created around the points to ... 
+Well data is cleaned to remove unwanted collumns before being converted to a vector file. Well points within 8000m of the DEM create a signifcant subset of points for bedrock depth calculations.
 <!-- why 8000m specifically?? -->
 
 Additional plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
@@ -209,7 +224,7 @@ Transimissivity is then calulated by multiplying K<sub>sat</sub> by soil depth e
 ### 2.7.2 Calibrating K<sub>sat</sub>
  <!-- work in progress code -->
 
-This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](#https://doi-org.ezproxy.library.uvic.ca/10.1029/2022GL100389) and [Bonetti et al., 2021](#https://doi.org/10.1038/s43247-021-00180-0). 
+This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](#https://agupubs-onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1029/2022GL100389) and [Bonetti et al., 2021](#https://www.nature.com/articles/s43247-021-00180-0). 
 <!-- NPP represents the potential of the soil to support biological activity depending on the biome it is located. -->
 This method utilizes RGEE and requires Earth engine to be set up properly to function. Using Earth Engine, the NPP for the target area is extracted and clipped to the target area.
 
@@ -221,9 +236,7 @@ where $ratio_{max}=10^{3.5 - 1.5 \times sand%^0.13}$ <!-- markdown doesnt like t
 
 K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
 
-## 2.8 Calculating Normal Recharge 
-
-### 2.8.1 With PCIC Data
+## 2.8 Calculating Normal Recharge with PCIC Data
 
 PCIC (Pacific Climate Impacts Consortium) data contains meteorlogical data that will be used to extract climate normals with a particular focus on normal precipation in the target study area.
 
@@ -243,7 +256,7 @@ With a density of $2650kg/m^3$ as the assumed density, `bulk_density` becomes a 
 
 Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data (cite?). A theoretical maximum root cohesion value is also set based on region. 
 
->Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://doi.org/10.1139/t01-031), [Sakals & Sidle (2004)](#https://doi.org/10.1139/x03-268), and [Burroughs & Thomas (1977).
+>Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977).
 
 With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
 
@@ -279,7 +292,7 @@ Burn year data is also an excellent tool for assessing burning of the target are
 
 The burn severity output raster is uutilized in this section of code to modify hydraulic condiuctivity (K<sub>sat</sub>) and root cohesion. 
 
-The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](#[https://doi.org/10.1016/j.enggeo.2024.107538](https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub)),[Abdollahi et al. (2023)}(#[https://doi.org/10.1029/2022EF003213](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)), and [Ebel & Moody (2020)](#[https://doi.org/10.1002/hyp.13865](https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865)) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity. These classifications are based on the BARC256 classifcation.
+The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub),[Abdollahi et al. (2023)}(#https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213), and [Ebel & Moody (2020)](#https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity. These classifications are based on the BARC256 classifcation.
 
 Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub) and [Abdollahi et al. (2023)}(#[https://doi.org/10.1029/2022EF003213](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and decreased 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction wasassumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during a fire, the 25% and 80% decrease will be utlized by the code to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
 
@@ -289,12 +302,12 @@ Root reinforcement based on burn severity is modified based on findings discusse
 This section is optional however will allow for assessment of uncertainty in later calculated probality values. Minimum, maximum and standard devation values are caluclated for layers including friction angle, transmissivity, soil cohesion, root cohesion, soil depth, (bulk density) and (recharge). 
 
 
-## 3. Landslide Probability 
+## 3. Landslide Probability
 
 Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell, where as bulk density and recharge are defined as constants.
 
 
-### 3.1 Factor Safety
+### 3.1 Factor of Safety
 
 <!-- factor of safety also isnt mentioned in the main driver just in the landslide prob r file.. do i explain or not?-->
 The factor of safety (Fs) defines the balance between resisting and driving forces on a slope.
@@ -311,6 +324,8 @@ $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_
 > $wetness$ is defined by a precomputed value or a function of $(\frac{R}{transmissivity} \times \frac{sca}{sin(slope)})$ where $R$ is the computed recharge rate at m/hr. Thes values clamped between 0 and 1.
 >
 > $density_w$ is the density of water in kg/m<sup>3</sup> which is 1000.
+
+The main code of the package does not include calculations for the factor of safety but it is included within the landslide probability function described in the next section.
 
 
 ### 3.2 Landslide Probability
@@ -352,10 +367,47 @@ prob_of_failure <- landslide_probability(
 
 In the function `landslide_probability` above, bulk density and recharge are provided as constants <!--(why? I thought they were rasters also?)-->. 
 
-`perturb_settings` (...)
 
+<!-- parts from the code that idk if i need to cover or not?
+
+- helper functions for converting degrees to radians & computing sin_slope fr rad
+- computing wetness function
+- FS function
+   - wetness/ cohesion*/ tan fa/ cos_slope can be overrided?
+- omptimized green-ampt solver using pre-allocated Rainfall Template
+   - transient wetness computation fr poding possibles
+   - landslide prob w rain intensity, duration etc - 
+- preclamp scalars - suggestion 3
+   - rain intensity/ duration/ recharge steady/ n_bins = clamped between 0-      1? others = rasters?
+   - precomps like normalized soil depth/ porosity base/ f_total 
+   - LHS loop - prevents Na/Nan values
+- progress bar shows up?
+- simulation loop
+- updated transient wetness based on stuff above
+      wetness_total <- clamp(m1 + m2, lower = 0, upper = 1.0)
+       m2 <- compute_transient_wetness(params$ksat, psi, d_theta_dynamic, 
+                                    rain_intensity, duration,params$soil_depth, 
+                                    F_total_template)
+      m1 <- compute_wetness(params$R_steady, current_trans, sca, sin_slope)
+- calculate saturated density using porosity and density of water (1000 kg/m3)
+    - porosity_base is already 1 - (bulk_density / 2650) in your code
+- fs is redefined (fr FS) including dynamic bulk density (includes          saturated density)
+- prob_landslide <- prob_landslide + (inv_n_bins / (1 + exp(alpha * (fs - 1))))
+- prob of failure -> 5 bins
+- perturb_settings =?? Preturbation `perturb_settings` (...)
+-->
+
+The package prompts landslide probability computation twice under different recharge scenarios to similate seasonal differences in landslide probability in the target area. 
 
 ### 3.3 Optional Manual Options
 
+Within the andslide probability function `n_bins` is the number of equally likely bins and defines how many times the model is run. This can be changed based on the user's goals. 
+Using this value, the cumulative probabilities of landslides using `seg(0, 1, by = 1/n_bins)`.
+The results of this function are then plotted to extract their best fit normal function which can be used to determine the distribution of landslide risk within the target region. 
+
+The output should show something similar to this: (insert image)
+
 
 <!-- add notes in for extra -->
+
+## 4. References
