@@ -29,7 +29,7 @@
        - [2.11.2 Uncertainty](#2.11.2-uncertainty)
    - [3. Landslide Probability](#3.-landslide-probability)
      - [3.1 Factor of Safety](#3.1-factor-of-safety)
-     - [3.2 Landslide Probability](#3.2-landslide-probability)
+     - [3.2 Computing Probability](#3.2-computing-probability)
      - [3.3 Optional Manual Options](#3.3-optional-manual-options)
    - [4. References](#references)
 
@@ -82,10 +82,9 @@ Slope is the main topgraphic variable used in this package. It is derived from t
 ### 2.2 Well Data
 
 Well data is needed for later calulation of soil depths. As well data includes distance to bedrock, this can be used as the maximum possible soil depth that can be calulated.
-Well data is cleaned to remove unwanted collumns before being converted to a vector file. Well points within 8000m of the DEM create a signifcant subset of points for bedrock depth calculations.
-<!-- why 8000m specifically?? -->
+Well data is cleaned to remove unwanted collumns before being converted to a vector file. Well points within abuffer distance of the DEM create a signifcant subset of points for bedrock depth calculations. 
 
-Additional plotting of well points is optional but can be helpful for viasualization and checking that the code worked.
+Additional plotting of well points is optional but can be helpful for viasualization and checking that well points were captured by the code.
 
 
 ### 2.3 Road Filling
@@ -102,7 +101,7 @@ The detrending function `detrend_surface` and `infel` add noise back to the inpa
 These inpainting and detrending functions aim at developing a surface reconstruction framework that is capable of preserving topographic variability and morphometric properties (e.g., roughness, flow directions) for carrying out solid hydrogeomorphological elaborations. 
 
 
-## 2.4 Soil Depth
+### 2.4 Soil Depth
 
 ### 2.4.1 Calculate Soil Depth from Parameters
 Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith), a fortran program, to r. This model allows for the estimation of soil mantle thickess in a digital landscape and assessment of debris flow based on parameters. 
@@ -151,7 +150,7 @@ For soil depth compuation `sca` (Specific Catchment Area) is additionally conver
 Using the filled DEM created with the mentioned inpainting in section 2.3, a layer is created to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are set to zero using the `infel` function to remove unrealistic values from the layer. Maximum soil depth is extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be (preferred/ chosen) in the new layer created. This new layer then represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated solely from inpainted and detrended DEM.
 
 
-## 2.5 Extract Soil Properties
+### 2.5 Extract Soil Properties
 
 The function `get_soilgrids` is adapted from [Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the desired [SoilGrids](#https://soilgrids.org) layer. 
 
@@ -161,19 +160,21 @@ Soil texture class can optionally be computed with the `soil_texture` function. 
 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
+_Soil Classifcation Triangle (Hoffmann, 2026)_
+
 
 <img width="800" height="737" alt="image" src="https://github.com/user-attachments/assets/9309a05b-dc2a-470f-b86a-d607cff53a60" />
 
 _Soil Classifcation Triangle (Corral-Pazos-de-Provenset al., 2018)_
 
 
-## 2.6 Calculate Shear Strength
+### 2.6 Calculate Shear Strength
 
 ### 2.6.1 Calculating Sand Subfractions
 
 To calculate shear strength parameters, sand sub-fractractions must be calculated first. Very fine sand, fine sand and coarse sand sub fractions are extracted based on methods proposed by [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121). The function `get_vfs` utilizes the RUSLE2 formula, ESDAC method and the Shirazi–Boersma theory to calculate very fine sand based on the soil classification computed above. 
 
-<img width="1000" height="661" alt="image" src="https://github.com/user-attachments/assets/ff238c5b-c5ba-4716-859c-f5800fc57819" />
+<img width="700" height="463" alt="image" src="https://github.com/user-attachments/assets/ff238c5b-c5ba-4716-859c-f5800fc57819" />
 
 _Models used to estimate very fine sand fraction (Corral-Pazos-de-Provenset al., 2018)_
 
@@ -206,7 +207,7 @@ The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://
 Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub). The to calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize that to zero.
 
 
-## 2.7 Hydrology
+### 2.7 Hydrology
 
 Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed eariler with the `get_soilgrids` function.
 
@@ -236,7 +237,7 @@ where $ratio_{max} = 10^{3.5 - (1.5 \times sand%^{0.13})}$ <!-- markdown doesnt 
 
 K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
 
-## 2.8 Calculating Normal Recharge with PCIC Data
+### 2.8 Calculating Normal Recharge with PCIC Data
 
 PCIC (Pacific Climate Impacts Consortium) data contains meteorlogical data that will be used to extract climate normals with a particular focus on normal precipation in the target study area.
 
@@ -245,14 +246,14 @@ PCIC data is regionally specific data. If the target region is outside of this r
 Average precipation data is extracted from the accessed CSV file over the last 30 years and the data's resolution <!--(do i need to know what 0.08333 or 0.1 deg means in this?--> is extracted to create a raster template for the data. Datapoints from the PCIC data are transfered onto this raster, converted to meters per hour, and rasterized _(across the whole are?)_. The 90th and 10th percentiles of this climate data are also extracted from the original datset.
 
 
-## 2.9 Soil Density
+### 2.9 Soil Density
 
 Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method based on [???](#https://github.com/usda-ars-ussl/rosetta-soil) to assign volumetric water content in the soil based on its texture class. This model uses the density of quartz which is $2650kg/m^3$. Assumed density differs regionally and may change depending on the target area <!-- fact check?-->.
 
 With a density of $2650kg/m^3$ as the assumed density, `bulk_density` becomes a function of $(density_{assumed} \times (1 - v)$. '$v$' represents theta_s ($\theta _s$). This value represents saturated volumetric water content which is dependant on the soil texture class.
 
 
-## 2.10 Root Cohesion
+### 2.10 Root Cohesion
 
 Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data (cite?). A theoretical maximum root cohesion value is also set based on region. 
 
@@ -267,7 +268,7 @@ sbfi$COHESION <- as.numeric((sbfi$STRUCTURE_BASAL_AREA_AVG / BA_max) * root_cohe
 The cohesion is then rasterized and clamped between zero and the set maximum root cohesion for later computations.
 
 
-## 2.11 Wildfire Effects
+### 2.11 Wildfire Effects
 
 The main effect of wildfires calculated in this section is burn severity. 
 
@@ -301,12 +302,21 @@ This section is optional however will allow for assessment of uncertainty in lat
 
 ## 3. Landslide Probability
 
-Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r) and soil depth are all used as calculated paramenters based on cell, where as bulk density and recharge are defined as constants.
+The function `landslide_probability` utilizes the LHS (latin hypercube sampling) to randomly select probable variations of input parameters.  The function then runs a determined number of loops based on these parameter samples to determine probability of the pixel failing under the determined conditions.
 
 
-### 3.1 Factor of Safety
+### 3.1 Inputs
 
-<!-- factor of safety also isnt mentioned in the main driver just in the landslide prob r file.. do i explain or not?-->
+Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r), soil depth, bulk density and recharge are all used as paramenters. 
+
+All parameters can be used as indidual rasters created through computation but can also be input as constants. For example, recharge values can be set as one constant across a region to simulate seasonal change in hydrology. Bulk density can also be assigned for the same reason.
+
+> [!IMPORTANT]
+> For the fuction to operate without error all inputs must be true, spatial rasters and have the same resolution, CRS and extents. If these requirements are not met a error message with pop up.
+
+
+### Factor of Safety
+
 The factor of safety (Fs) defines the balance between resisting and driving forces on a slope.
 
 $$Fs = \frac {F_{resisting}}{F_{driving}}$$
@@ -325,45 +335,21 @@ $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_
 The main code of the package does not include calculations for the factor of safety but it is included within the landslide probability function described in the next section.
 
 
-### 3.2 Landslide Probability
+### 3.2 Computing Probability
 
-To calculate landslide probability, the previously (created) spatial rasters for friction angle `FA`, transmissivity `transmissivity`, Specific Catchment Area `sca`, soil cohesion `coh`, root cohesion `coh_r`, and soil depth `soil_depth` are utilized to calculate landslide probability with the function
+### 3.2.1 Hydrological Variables
+
+Two types of hydrological scenarios can be utilized to calculate landslide probability. 
+Steady state wetness can be utilzed to compute landslide probability based on long term scales depending on persistant recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is computed by the function below.
 
 ```
-prob_of_failure <- landslide_probability(
-  slope = slope,
-  friction_angle = FA,
-  bulk_density = bulk_density,
-  transmissivity = transmiss,
-  sca = sca,
-  cohesion_s = coh,
-  cohesion_r = coh_r,
-  soil_depth = soil_depth,
-  R = recharge,
-  perturb_var = c(
-    "friction_angle",
-    "cohesion_s"
-    ),
-  perturb_settings = list(
-    friction_angle = list(sd = 10, min = 5, max = 60),
-    cohesion_s     = list(sd = 3,  min = 0, max = 30),
-    cohesion_r     = list(sd = 3, min = 0, max = 20),
-    transmissivity = list(sd = 0.5, min = 0, max = 10),
-    soil_depth     = list(sd = 0.5, min = 0, max = 10),
-    bulk_density   = list(sd = 100, min = 800, max = 2200),
-    R              = list(sd = 0.00005, min = 0.00001, max = 0.001)), 
-  n_bins = 50,
-  random_within_bins = TRUE,
-  intermediates = FALSE,
-  alpha = 5
-)
+compute_wetness <- function(R, transmissivity, sca, sin_slope) {
+  terra::clamp((R / transmissivity) * (sca / sin_slope), lower = 0, upper = 1)
+}
 ```
 
-> [!IMPORTANT]
-> For the fuction to operate without error all inputs must be true, spatial rasters and have the same resolution, CRS and extents. If these requirements are not met a error message with pop up.
-
-In the function `landslide_probability` above, bulk density and recharge are provided as constants <!--(why? I thought they were rasters also?)-->. 
-
+Transient wetness scenarios/ transient hydrology model can be utilized to compute landslide probability over the period of a precipiation event. In this scenerario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event.
+To model transient wetness the Optimized Green-Ampt Solver is used (<source>). The equation used in the model (<add in>) uses the numerical method to iterately (?) solve the model. After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipiation event. This saturation amount informs the function of the true weight of the soil.
 
 <!-- parts from the code that idk if i need to cover or not?
 
@@ -394,7 +380,10 @@ In the function `landslide_probability` above, bulk density and recharge are pro
 - perturb_settings =?? Preturbation `perturb_settings` (...)
 -->
 
-The package prompts landslide probability computation twice under different recharge scenarios to similate seasonal differences in landslide probability in the target area. 
+
+
+
+
 
 ### 3.3 Optional Manual Options
 
