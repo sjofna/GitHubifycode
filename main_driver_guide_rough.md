@@ -2,7 +2,8 @@
 
 <!--In terms of describing what a function is doing, you should only have to do this for custom functions.-->
 
-<!--Make/ finish a table of contents with nested lists of sections/ subsections for easy navigation through the document.-->
+<!--Make/ finish a table of contents with nested lists of sections/ subsections for easy navigation through the document. currently doesnt link to sections as planned-->
+
 
 - [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
    - [1. Initial Set Up](#1.-initial-set-up)
@@ -37,7 +38,7 @@
 <!-- Describe basic package functions? -->
 
 
-## 1. Initial Set Up
+## [1. Initial Set Up](#1.-initial-set-up)
 
 ### 1.1 Required Packages
 [GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are needed to run the model.
