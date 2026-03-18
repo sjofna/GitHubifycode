@@ -263,7 +263,7 @@ With a density of $2650kg/m^3$ as the assumed density, `bulk_density` becomes a 
 
 Using Rgee, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data (cite?). A theoretical maximum root cohesion value is also set based on region. 
 
-Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977).
+Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977)](#https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf).
 
 With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
 
@@ -379,11 +379,31 @@ where $b$ is `n_bins`.
 ### 3.3 Expected Outputs
 
 The output from this model is a raster based probability of landslide occuring per pixel based on the input parameters.
-
+*(put some figs in)*
 
 
 ## 4. References
 <!-- hyperlink references from where theyre referenced? or could have sections of refences... want references links to be open source otherwise idk if they work-->
 
-[John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  
-[Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) 
+- [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  
+- [Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) 
+- [regolith](https://github.com/rogerlew/usgs-regolith)
+- [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y)
+- [Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c)
+- [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin)
+- [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads)
+- [Corral-Pazos-de-Provenset al. (2018)](#http://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1002/ldr.3121)
+- [Panagos et al. (20140](#https://www.sciencedirect.com/science/article/pii/S0048969714001727?via%3Dihub)
+- [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub)
+- [Luvai et al., (2022)](#https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1155/2022/2122554)
+- [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/)
+- [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)
+- [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php)
+- soil density source? [???](#https://github.com/usda-ars-ussl/rosetta-soil)
+- [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031)
+- [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268)
+- [Burroughs & Thomas (1977)](#https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf)
+- burn severity data via rgee (need to cite?) [this dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation)
+- [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub)
+- [Abdollahi et al. (2023)](#https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)
+- [Ebel & Moody (2020)](#https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865)
