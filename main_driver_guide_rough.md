@@ -5,40 +5,42 @@
 <!--Make/ finish a table of contents with nested lists of sections/ subsections for easy navigation through the document. currently doesnt link to sections as planned-->
 
 
-- [User Guide for Main_driver.r file](#user-guide-for-main_driver.r-file)
-   - [1. Initial Set Up](#1.-initial-set-up)
-     - [1.1 Required Packages](#1.1-required-packages)
-     - [1.2 Other Required Scripts to Run the Package](#1.2other-required-scripts-to-run-the-package)
-     - [1.3 Set File Paths](#1.3-set-file-paths)
-   - [2. Initial Variable Computation](#2.initial-variable-computation)
-     - [2.1 Slope Calculation](#2.1-slope-calculation)
-     - [2.2 Well Data](#2.2-well-data)
-     - [2.3 Road Filling](#2.3-road-filling)
-     - [2.4 Soil Depth](#2.4-soil-depth)
-     - [2.5 Extract Soil Properties](#2.5-extract-soil-properties)
-     - [2.6 Calculate Shear Strength](#2.6-calculate-shear-trength)
-       - [2.6.1 Calculating Sand Subfractions](#2.6.1-calculating-sand-subfractions)
-       - [2.6.2 Calculating Shear Strength Parameters](#2.6.2-calculating-shear-strength-parameters)
-     - [2.7 Hydrology](#2.7-hydrology)
-       - [2.7.1 Calculating K<sub>sat</sub>](#2.7.1-calculating-ksat)
-       - [2.7.2 Calibrating K<sub>sat</sub>](#2.7.2-calibrating-ksat)
-     - [2.8 Calculating Normal Recharge with PCIC Data](#2.8-calculating-normal-recharge-with-pcic-data)
-     - [2.9 Soil Density](#2.9-soil-density)
-     - [2.10 Root Cohesion](#2.10-root-cohesion)
-     - [2.11 Wildfire Effects](#2.11-wildfire-effects)
-       - [2.11.1 Modifier Layers](#2.11.1-modifier-layers)
-       - [2.11.2 Uncertainty](#2.11.2-uncertainty)
-   - [3. Landslide Probability](#3.-landslide-probability)
-     - [3.1 Factor of Safety](#3.1-factor-of-safety)
-     - [3.2 Computing Probability](#3.2-computing-probability)
-     - [3.3 Optional Manual Options](#3.3-optional-manual-options)
+- [User Guide for Main_driver.r file](#user-guide-for-main_driverr-file)
+   - [1. Initial Set Up](#1-initial-set-up)
+     - [1.1 Required Packages](#11-required-packages)
+     - [1.2 Other Required Scripts to Run the Package](#12-other-required-scripts-to-run-the-package)
+     - [1.3 Set File Paths](#13-set-file-paths)
+   - [2. Initial Variable Computation](#2-initial-variable-computation)
+     - [2.1 Slope Calculation](#21-slope-calculation)
+     - [2.2 Well Data](#22-well-data)
+     - [2.3 Road Filling](#23-road-filling)
+     - [2.4 Soil Depth](#24-soil-depth)
+     - [2.5 Extract Soil Properties](#25-extract-soil-properties)
+     - [2.6 Calculate Shear Strength](#26-calculate-shear-strength)
+       - [2.6.1 Calculating Sand Subfractions](#261-calculating-sand-subfractions)
+       - [2.6.2 Calculating Shear Strength Parameters](#262-calculating-shear-strength-parameters)
+     - [2.7 Hydrology](#27-hydrology)
+       - [2.7.1 Calculating K<sub>sat</sub>](#271-calculating-ksat)
+       - [2.7.2 Calibrating K<sub>sat</sub>](#272-calibrating-ksat)
+     - [2.8 Calculating Normal Recharge with PCIC Data](#28-calculating-normal-recharge-with-pcic-data)
+     - [2.9 Soil Density](#29-soil-density)
+     - [2.10 Root Cohesion](#210-root-cohesion)
+     - [2.11 Wildfire Effects](#211-wildfire-effects)
+       - [2.11.1 Modifier Layers](#2111-modifier-layers)
+       - [2.11.2 Uncertainty](#2112-uncertainty)
+   - [3. Landslide Probability](#3-landslide-probability)
+     - [3.1 Factor of Safety](#31-factor-of-safety)
+     - [3.2 Computing Probability](#32-computing-probability)
+       - [3.2.1 Hydrological Variables](#321-hydrological-variables)
+       - [3.2.2 Latin Hypercube Sampling Method](#322-latin-hypercube-sampling-method)
+     - [3.3 Expected Outputs](#33-expected-outputs)
    - [4. References](#references)
 
 
 <!-- Describe basic package functions? -->
 
 
-## [1. Initial Set Up](#1.-initial-set-up)
+## 1. Initial Set Up
 
 ### 1.1 Required Packages
 [GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are needed to run the model.
@@ -233,10 +235,13 @@ This method utilizes RGEE and requires Earth engine to be set up properly to fun
 To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from $(kg C m^{-2} yr^{-1}$ to $g C m^-1 yr-1 (*1000))$. 
 With this the K<sub>sat</sub> factor becomes 
 
-$$ratio_{max} - ((ratio_{max} - 1) \div (1 + (\frac{NPP}{p})^q))$$
-where $ratio_{max} = 10^{3.5 - (1.5 \times sand%^{0.13})}$ <!-- markdown doesnt like this last equation-->
+<!-- markdown doesnt like the last equation -> $$ratio_{max} - ((ratio_{max} - 1) \div (1 + (\frac{NPP}{p})^q))$$
+where $ratio_{max} = 10^{3.5 - (1.5 \times sand%^{0.13})}$-->
+
+<img width="603" height="76" alt="image" src="https://github.com/user-attachments/assets/6ad9a0a0-3c79-4df8-b885-b2e3057169f4" />
 
 K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
+
 
 ### 2.8 Calculating Normal Recharge with PCIC Data
 
@@ -341,7 +346,8 @@ The main code of the package does not include calculations for the factor of saf
 ### 3.2.1 Hydrological Variables
 
 Two types of hydrological scenarios can be utilized to calculate landslide probability. 
-Steady state wetness can be utilzed to compute landslide probability based on long term scales depending on persistant recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is computed by the function below.
+
+Steady state wetness/ steady state hydrological model can be utilzed to compute landslide probability based on long term scales depending on persistant recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is computed by the function below.
 
 ```
 compute_wetness <- function(R, transmissivity, sca, sin_slope) {
@@ -350,51 +356,34 @@ compute_wetness <- function(R, transmissivity, sca, sin_slope) {
 ```
 
 Transient wetness scenarios/ transient hydrology model can be utilized to compute landslide probability over the period of a precipiation event. In this scenerario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event.
-To model transient wetness the Optimized Green-Ampt Solver is used (<source>). The equation used in the model (<add in>) uses the numerical method to iterately (?) solve the model. After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipiation event. This saturation amount informs the function of the true weight of the soil.
+To model transient wetness the Optimized Green-Ampt Solver is used (<source>). The equation used in the model *(add this in)* uses the numerical method to iterately *(?)* solve the model. After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipiation event. This saturation amount informs the function of the true weight of the soil which then alters the factor of safety.
 
-<!-- parts from the code that idk if i need to cover or not?
 
-- helper functions for converting degrees to radians & computing sin_slope fr rad
-- computing wetness function
-- FS function
-   - wetness/ cohesion*/ tan fa/ cos_slope can be overrided?
-- omptimized green-ampt solver using pre-allocated Rainfall Template
-   - transient wetness computation fr poding possibles
-   - landslide prob w rain intensity, duration etc - 
-- preclamp scalars - suggestion 3
-   - rain intensity/ duration/ recharge steady/ n_bins = clamped between 0-      1? others = rasters?
-   - precomps like normalized soil depth/ porosity base/ f_total 
-   - LHS loop - prevents Na/Nan values
-- progress bar shows up?
-- simulation loop
-- updated transient wetness based on stuff above
-      wetness_total <- clamp(m1 + m2, lower = 0, upper = 1.0)
-       m2 <- compute_transient_wetness(params$ksat, psi, d_theta_dynamic, 
-                                    rain_intensity, duration,params$soil_depth, 
-                                    F_total_template)
-      m1 <- compute_wetness(params$R_steady, current_trans, sca, sin_slope)
-- calculate saturated density using porosity and density of water (1000 kg/m3)
-    - porosity_base is already 1 - (bulk_density / 2650) in your code
-- fs is redefined (fr FS) including dynamic bulk density (includes          saturated density)
-- prob_landslide <- prob_landslide + (inv_n_bins / (1 + exp(alpha * (fs - 1))))
-- prob of failure -> 5 bins
-- perturb_settings =?? Preturbation `perturb_settings` (...)
--->
+### 3.2.2 Latin Hypercube Sampling Method
+
+To ensure accurate landslide probability computation the latin hypercube sampling (LHS) technique is utilized to sample random values from equally probable bins for each parameter *(insert fig for added visual)*. To create the LHS matrix, each parameters distrubtion is predefined by normal ranges found within the target area. These definitions can be found within the `perturb_settings` of the function. The distribution of the parameters is then extracted, normalized around a mean of zero and split into the determined equally probable bins denoted as `n_bins`. The matrix extracts a random sample from a bin from each parameter, alters each pixels data to decrease or increase as a function of the sample extracted. The landslide probability function computes each pixels factor of saftey based on these altered parameters. This simulation then repeats for all equally probable bins creating a range of FS values for each pixel. The model then computes each pixels probability of failure based on the normal range of parameters by the function:
+
+`prob_landslide <- prob_landslide + (inv_n_bins / (1 + exp(alpha * (fs - 1))))`
+
+where `inv_n_bins` is defined by `1 / n_bins` and alpha, which can be defined by the user, weights FS values close to zero to be more signifcant than values further from zero. This weighting allows areas that are slightly unstable to be signifcantly different than areas that are slightly stable under normal conditions. `prob_landslide` within this function has a value of zero but allows the computed values to by tied to an existant raster predefined in the model. As such the equation defining landslide proability at each pixel is
+
+$$\frac{1 \div b}{(1 + e^{(\alpha \times (Fs - 1)})}$$
+
+where $b$ is `n_bins`.
+
+> [!NOTE]
+>  As `n_bins` is increased by the user, the number of equal probable bins increases which increases processing time but can additionally increase confidence in the probability output.
 
 
 
+### 3.3 Expected Outputs
 
-
-
-### 3.3 Optional Manual Options
-
-Within the andslide probability function `n_bins` is the number of equally likely bins and defines how many times the model is run. This can be changed based on the user's goals. 
-Using this value, the cumulative probabilities of landslides using `seg(0, 1, by = 1/n_bins)`.
-The results of this function are then plotted to extract their best fit normal function which can be used to determine the distribution of landslide risk within the target region. 
-
-The output should show something similar to this: _(insert image)_
+The output from this model is a raster based probability of landslide occuring per pixel based on the input parameters.
 
 
 
 ## 4. References
-<!-- hyperlink references from where theyre referenced? or could have sections of refences... want references links to be open source otherwise idk if tehy work-->
+<!-- hyperlink references from where theyre referenced? or could have sections of refences... want references links to be open source otherwise idk if they work-->
+
+[John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  
+[Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) 
