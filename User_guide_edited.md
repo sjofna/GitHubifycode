@@ -103,14 +103,13 @@ These inpainting and detrending functions aim at developing a surface reconstruc
 ### 2.4 Soil Depth
 
 ### 2.4.1 Calculate Soil Depth from Parameters
-Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith), a fortran program, to r. This model allows for the estimation of soil mantle thickness in a digital landscape and assessment of debris flow based on parameters. 
+Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith) fortran program to R. This model allows for the estimation of soil mantle thickness in a digital landscape and assessment of debris flow based on parameters. 
 
 The LCSC model uses the equation 
 
 $$\mathrm d_r = C_0 + C_1 \bigtriangledown z + C_2 (S_c - |\bigtriangledown z|),       where      (S_c - |\bigtriangledown z|) > 0$$
 
-<!-- ![equation](https://latex.codecogs.com/svg.latex?d_%7Br%7D%20%3D%20C_%7B0%7D&plus;C_%7B1%7D%5Cbigtriangledown%20z&plus;C_%7B2%7D%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%2C%20where%20%5Cleft%20%28%20S_%7Bc%7D-%5Cleft%20%7C%20%5Cbigtriangledown%20z%20%5Cright%20%7C%20%5Cright%20%29%3E0) -->
-to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. In the main code this function looks like:
+to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://doi.org/10.1038/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. The function is structured as follows:
 
 ```
 soil_depth <- lrsc_depth_model(
@@ -128,43 +127,38 @@ soil_depth <- lrsc_depth_model(
 )
 ```
 
-The parameters in this case were based the [model developer's](#https://code.usgs.gov/ghsc/lhp/soil_depth) recommended values for the most similar climate, geology and vegetation to the area. This values will need to be altered to fit the location being calculated. 
+The parameters used are based the [model developer's](#https://code.usgs.gov/ghsc/lhp/soil_depth) recommended values for the most similar climate, geology and vegetation to the area. This values may need to be altered to fit the location being calculated. 
 
 C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. This value is equal to the y-intercept in the linear regression. C<sub>0</sub> was calculated using the formula presented in the Patton et al. paper where average soil thickness \bar{h} can be derived from the general equation 
 
 $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}$$
 
->$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the relationship between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness, or rate of slope change in any given direction. When this value is equal to 0, $\bar{h}$ becomes $h$.
+>$(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$ is the slope of the relationship between mobile regolith thickness and curvature of the terrain. $C$ in this equation is terrain roughness. When this value is equal to 0, $\bar{h}$ becomes $h$.
 
-C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitivity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$. <!--Using the values from the most similar site tested (Coos Bay) $C_1 = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) = 3.522$.-->
+C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitivity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$.
 
 C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians.
 
 For soil depth computation `sca` (Specific Catchment Area) is additionally converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and deposition due to flow dynamics. 
-<!--SCA and CA are Specific Catchment Area and Specific Catchment, respectively. They are both variables used to represent drainage. CA is, for any given cell in a DEM, the total area of all upslope cells that would in theory be draining into it. SCA, for any given cell in a dem, provides an idea of the discharge, or potential concentration of flow, per unit flow width, due to upslope cells. Basically, SCA accounts for the fact that in a DEM each pixel covers some amount of area and is not just an infinitely small point. This allows us to consider the fact that overland flow would be diffused across the width of a cell (water spread out) and not just stacked in some infinitely thin line of flow that spans the length of the cell. This gives a better idea of the erosive capability of water flowing over any given point within a DEM cell. This is all to say that SCA is CA divided by the width of a pixel, so therefore CA is SCA times the width of a pixel. The reason I calculate SCA first then convert to CA is because SCA is more commonly used and there are better algorithms out there for calculating it. Anyway, SCA in particular can be a confusing concept but it is widely used so you don't need to go into too much detail about it-->
 
 
 ### 2.4.2 Adjusting Soil Depth Around Roads
 
-Using the filled DEM created with the mentioned inpainting in section 2.3, a layer is created to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are set to zero using the `infel` function to remove unrealistic values from the layer. Maximum soil depth is extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be (preferred/ chosen) in the new layer created. This new layer then represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated solely from inpainted and detrended DEM.
+The filled DEM created with the mentioned inpainting in section [2.3](#23), is used to capture the difference in surface height of the original DEM and the Filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are normalized to zero to remove unrealistic values from the layer. Maximum soil depth is then extracted from the original `soil_depth` layer. Soil depth around roads is then clipped to the maximum soil depth using the code `soil_depth_adj <- ifel(soil_depth_adj > soil_depth_max, soil_depth_max, soil_depth_adj)`. 
+This creates a layer where if at any point the `soil_depth_adj` is less than `soil_depth_max`, then the value from the `soil_depth_adj` will be preferred in the new layer created. This new layer now represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated from inpainted and detrended DEM.
 
 
 ### 2.5 Extract Soil Properties
 
-The function `get_soilgrids` is adapted from [Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the desired [SoilGrids](#https://soilgrids.org) layer. 
+The function `get_soilgrids` is adapted from [Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the target [SoilGrids](#https://soilgrids.org) layer. 
 
-This function is used to extract sand and clay percentages from layer depths of 0-100m. These values are then fixes for soil classification using `fix-soil`.  This function converts the original units from $g/100g$ to a fraction. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay )). This ensures that all three values add up to one (100% of the soil) and is an easier method than extracting the silt value with the `get_soilgrids` function.
+This function is used to extract sand and clay percentages from layer depths of 0-100m. These values are then fixed for soil classification using `fix-soil`.  This function converts the original units from $g/100g$ to a fraction. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay )). This ensures that all three values add up to one (100% of the soil) and is faster for processing.
 
-Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the image below. 
+Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the figure below. 
 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
 _Soil Classifcation Triangle (Hoffmann, 2026)_
-
-
-<img width="800" height="737" alt="image" src="https://github.com/user-attachments/assets/9309a05b-dc2a-470f-b86a-d607cff53a60" />
-
-_Soil Classifcation Triangle (Corral-Pazos-de-Provenset al., 2018)_
 
 
 ### 2.6 Calculate Shear Strength
