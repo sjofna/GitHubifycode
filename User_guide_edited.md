@@ -393,39 +393,70 @@ The output from this model is a raster based probability of landslide occuring p
 ## 4. References
 <!-- hyperlink references from where they're referenced? or could have sections of refences... want references links to be open source otherwise idk if they work-->
 
-- [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans) for inpainting code.  
-- [Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390)
+[John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans) for inpainting code.  
+
+[Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390)
+
 Crema, S., Llena, M., Calsamiglia, A., Estrany, J., Marchi, L., Vericat, D., & Cavalli, M. (2020). Can inpainting improve digital terrain analysis? Comparing techniques for void filling, surface reconstruction and geomorphometric analyses. *Earth Surface Processes and Landforms, 45*(3), 736–755. https://doi.org/10.1002/esp.4739
-- [regolith](https://github.com/rogerlew/usgs-regolith) USGS regolith - "A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard assessment" (cites source on github below)
+
+[regolith](https://github.com/rogerlew/usgs-regolith) USGS regolith - "A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard assessment" (cites source on github below)
 Baum, R.L., Bedinger, E.C., and Tello, M.J., 2021, REGOLITH--A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard assessment: U.S. Geological Survey Software Release, https://doi.org/10.5066/P9U2RDWJ
-- [Patton et al. (2018)]([https://doi.org/10.1038/s41467-018-05743-y](https://www.nature.com/articles/s41467-018-05743-y)
+
+[Patton et al. (2018)]([https://doi.org/10.1038/s41467-018-05743-y](https://www.nature.com/articles/s41467-018-05743-y)
+
 Patton, N. R., Lohse, K. A., Godsey, S. E., Crosby, B. T., & Seyfried, M. S. (2018). Predicting soil thickness on soil mantled hillslopes. *Nature Communications, 9*(1), Article 3329. https://doi.org/10.1038/s41467-018-05743-y
-- [Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) for soil grids
-- [Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin)
-- [Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads)
-- [Corral-Pazos-de-Provenset al. (2018)](#https://onlinelibrary.wiley.com/doi/full/10.1002/ldr.3121)
+
+[Giulio Genova's code](#https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) for soil grids
+
+[Hoffmann (2026)](#https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin)
+
+[Mathews (2014)](#https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads)
+
+[Corral-Pazos-de-Provenset al. (2018)](#https://onlinelibrary.wiley.com/doi/full/10.1002/ldr.3121)
+
 Corral‐Pazos‐de‐Provens, E., Domingo‐Santos, J. M., & Rapp‐Arrarás, Í. (2018). Estimating the very fine sand fraction for calculating the soil erodibility K‐factor. *Land Degradation & Development, 29*(10), 3595–3606. https://doi.org/10.1002/ldr.3121
-- [Panagos et al. (20140](#https://www.sciencedirect.com/science/article/pii/S0048969714001727)
+
+[Panagos et al. (20140](#https://www.sciencedirect.com/science/article/pii/S0048969714001727)
+
 Panagos, P., Meusburger, K., Ballabio, C., Borrelli, P., & Alewell, C. (2014). Soil erodibility in Europe: A high-resolution dataset based on LUCAS. *The Science of the Total Environment*, 479–480, 189–200. https://doi.org/10.1016/j.scitotenv.2014.02.010
-- [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/pii/S0167198718308031)
+
+[Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/pii/S0167198718308031)
+
 Amiri Khaboushan, E., Emami, H., Mosaddeghi, M. R., & Astaraei, A. R. (2018). Estimation of unsaturated shear strength parameters using easily-available soil properties. *Soil & Tillage Research*, 184, 118–127. https://doi.org/10.1016/j.still.2018.07.006
-- [Luvai et al., (2022)](#https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554)
+
+[Luvai et al., (2022)](#https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554)
+
 Luvai, A., Obiero, J., & Omuto, C. (2022). Soil Loss Assessment Using the Revised Universal Soil Loss Equation (RUSLE) Model. *Applied and Environmental Soil Science*, 2022, 1–14. https://doi.org/10.1155/2022/2122554
-- [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/)
-- [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)
-  <!-- no citation on uvic -->
-- [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php)
-- soil density source? [???](#https://github.com/usda-ars-ussl/rosetta-soil)
-- [Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031) (2001!!!! not 2021)
+
+[USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/)
+
+[Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) <!-- no citation on uvic -->
+
+[Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php)
+
+soil density source? [???](#https://github.com/usda-ars-ussl/rosetta-soil)
+
+[Schmidt et al, (2021)](#https://cdnsciencepub.com/doi/10.1139/t01-031) (2001!!!! not 2021)
+
 Schmidt, K., Roering, J., Stock, J., Dietrich, W., Montgomery, D., & Schaub, T. (2001). The variability of root cohesion as an influence on shallow landslide susceptibility in the Oregon Coast Range. *Canadian Geotechnical Journal, 38*(5), 995–1024. https://doi.org/10.1139/cgj-38-5-995
-- [Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268)
+
+[Sakals & Sidle (2004)](#https://cdnsciencepub.com/doi/10.1139/x03-268)
+
 Sakals, M. E., & Sidle, R. C. (2004). A spatial and temporal model of root cohesion in forest soils. *Canadian Journal of Forest Research, 34*(4), 950–958. https://doi.org/10.1139/x03-268
-- [Burroughs & Thomas (1977)](#https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf)
+
+[Burroughs & Thomas (1977)](#https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf)
   <!-- no citation on uvic -->
-- burn severity data via rgee (need to cite?) [this dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation)
-- [Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388)
+  
+burn severity data via rgee (need to cite?) [this dataset](#https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation)
+
+[Abdollahi et al. (2024)](#https://www.sciencedirect.com/science/article/pii/S0013795224001388)
+
 Abdollahi, M., Vahedifard, F., & Leshchinsky, B. A. (2024). Hydromechanical modeling of evolving post-wildfire regional-scale landslide susceptibility. *Engineering Geology, 335*, Article 107538. https://doi.org/10.1016/j.enggeo.2024.107538
-- [Abdollahi et al. (2023)](#https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022EF003213)
+
+[Abdollahi et al. (2023)](#https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022EF003213)
+
 Abdollahi, M., Vahedifard, F., & Tracy, F. T. (2023). Post‐Wildfire Stability of Unsaturated Hillslopes Against Rainfall‐Triggered Landslides. *Earth’s Future, 11*(3), Article 2022. https://doi.org/10.1029/2022EF003213
-- [Ebel & Moody (2020)](#Parameter estimation for multiple post-wildfire hydrologic models)
+
+[Ebel & Moody (2020)](#Parameter estimation for multiple post-wildfire hydrologic models)
+  
 Ebel, B. A., & Moody, J. A. (2020). Parameter estimation for multiple post‐wildfire hydrologic models. *Hydrological Processes, 34*(21), 4049–4066. https://doi.org/10.1002/hyp.13865
