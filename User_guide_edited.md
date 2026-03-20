@@ -44,13 +44,12 @@
 
 ### 1.1 Required Packages
 [GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are needed to run the model.
-Read up on documention by clicking the hyperlinks above.
 
 
 **_Setting Up RGEE_**
 
 1. Sign up for Earth Engine if not already.
-2. Set up Earth Engine user with user's email (replace "user_email@email.com" with user's email).
+2. Set up Earth Engine user with user's email (replace the email in the code with user's email).
 3. Connect to Earth Engine drive via initializer function above.
    
 >[!TIP]
@@ -67,39 +66,36 @@ Ensure that all additional scripts are downloaded and file path names have been 
 
 ### 1.3 Set File Paths
 
-This step is important as it will ensure that all inputs are coming from the correct folder and outputs will all be collected into one location for easy future access. Be sure to modify the input `main_in` and output `main_out` paths with personal paths. Temporary paths `tmp_path` are set up as to not pollute the main output path with temporary files and allows for these files to be deleted easily as needed.
+Modify the input `main_in` and output `main_out` paths with personal paths to ensure all inputs are coming from the correct folder and outputs are collected into one location for easy future access. Temporary paths `tmp_path` are set up as to not pollute the main output path with temporary files and allows for these files to be deleted easily as needed.
 
 
 ---
 
 ## 2. Initial Variable Computation
 
-This next few sections of code lays the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. This can be helpful for minimizing computing power while working through the code. 
+These next few sections of code lay the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. This can be helpful for minimizing computing power while working through the code. 
 
 
 ### 2.1 Slope Calculation
 
-Slope is the main topographic variable used in this package. It is derived from the digital elevation model (DEM) using the `terra::terrain(dem, "slope")` [function](#https://www.rdocumentation.org/packages/terra/versions/1.0-7/topics/slope). The output here is in degrees.
+Slope is the main topographic variable used in this package. It is derived from the digital elevation model (DEM) using the `terra::terrain(dem, "slope")` [function](#https://www.rdocumentation.org/packages/terra/versions/1.0-7/topics/slope). The output is in degrees.
 
 
 ### 2.2 Well Data
 
-Well data is needed for later calculation of soil depths. As well data includes distance to bedrock, this can be used as the maximum possible soil depth that can be calculated.
-Well data is cleaned to remove unwanted columns before being converted to a vector file. Well points within a buffer distance of the DEM create a significant subset of points for bedrock depth calculations. 
+Well data is needed for later calculation of soil depths. Well data includes distance to bedrock, which will be used as the maximum possible soil depth that can be calculated.
+Well data is cleaned and converted to a vector file. Well points within a buffer distance of the DEM create ensure presence of points for bedrock depth calculations. 
 
 Additional plotting of well points is optional but can be helpful for visualization and checking that well points were captured by the code.
 
 
 ### 2.3 Road Filling
 
-To conduct road filling, the vector road file is called in, a 15m buffer is created and the buffer file is converted to a raster layer. 15 meters is used to adequately remove the road surface as well as the cut slope (upslope embankment) and fill slope (downslope embankment). A new DEM is  created from the road raster and road cells are converted to NaN values using `ifel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
+To conduct road filling, a 15m buffer is created around the called in road lines and the buffer file is rasterized. 15 meters is used to adequately remove the road surface, the cut slope (upslope embankment) and fill slope (downslope embankment). A new DEM is  created from the road raster and road cells are converted to NaN values using `ifel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
 
-The `inpaint_nans` function was developed by [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) and has been shown to reliably re-construct topography from high resolution DTMs for geomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case representing former roads) using edge information. The function for method ‘0’, a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy (Harris et al., 2020) and scipy (Virtanen et al., 2020) and then applied as a function in R using the package reticulate (Ushey et al., 2025).
+The `inpaint_nans` function was developed by [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK) and has been shown to reliably re-construct topography from high resolution DTMs for geomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case representing former roads) using edge information. The function for method ‘0’, is a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy (Harris et al., 2020) and scipy (Virtanen et al., 2020) and then applied as a function in R using the package reticulate (Ushey et al., 2025).
 
-<!--"Digital image inpainting approaches can be grouped into three categories: (i) patch-based, (ii) sparse and (iii) partial differential equations/variational methods 
-The inpainting algorithm applied uses a PDE model to simulate a heat diffusion process. The accuracy of this inpainting technique is compared to the results of commonly used void-filling interpolation algorithms for a complex alpine test area. Void-filling performance, in particular, is evaluated quantitatively by means of statistical metrics (Reuter et al.2007) but also from a geomorphometric point of view.[(Crema et al., 2020)](https://onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/epdf/10.1002/esp.4739?domain=p2p_domain&token=GFE7JAFNEAQCUJK53MKK)" -->
-
-The detrending function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, however, this surface is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DTM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
+The detrending function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, but this surface is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DTM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
 
 These inpainting and detrending functions aim at developing a surface reconstruction framework that is capable of preserving topographic variability and morphometric properties (e.g., roughness, flow directions) for carrying out solid hydrogeomorphological elaborations. 
 
