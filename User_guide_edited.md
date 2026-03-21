@@ -205,7 +205,7 @@ The GMD is based off of the methods proposed by [Luvai et al., (2022)](#https://
 |      Clay|<0.002 - 0.0002mm |
 
 
-Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub). The to calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize that to zero.
+Cohesion is calculated as a function of the subfractions of clay, coarse sand and very fine sand based on the study done by [Khaboushan et al. (2018)](#https://www.sciencedirect.com/science/article/abs/pii/S0167198718308031?via%3Dihub). To calculate unsaturated cohesion of the soil, the function `unsat_cohesion` $= ( -0.75 + 2.07 \times \mathrm clay^{0.5} - 5.87 \times \mathrm log10 (\mathrm coarse sand) - 0.035 \times \mathrm very fine sand^2)$. If this equation spits out a negative value the function will normalize it to zero.
 
 
 ### 2.7 Hydrology
@@ -213,10 +213,12 @@ Cohesion is calculated as a function of the subfractions of clay, coarse sand an
 Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed earlier with the `get_soilgrids` function.
 
 ### 2.7.1 Calculating K<sub>sat</sub>
-To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function allows two methods; rosetta which assign K<sub>sat</sub> based on [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](#https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
-The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil ([Simons et al., 2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the wrong units it is further derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
+To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. 
+This function allows two methods; rosetta which assigns K<sub>sat</sub> based on [USDA texture codes *(?)*](#https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](#https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
+The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil ([Simons et al., 2020)](#https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). 
+As K<sub>sat</sub> is logged and in the incorrect units, it is further derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
 
-Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section 2.4. <!-- function needs to be fixed so skip explanation for now? -->
+Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section 2.4. <!-- function needs to be fixed so skip explanation for now -->
 
 
 > [!TIP]
@@ -227,14 +229,10 @@ Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth e
  <!-- work in progress code -->
 
 This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](#https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](#https://agupubs-onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1029/2022GL100389) and [Bonetti et al., 2021](#https://www.nature.com/articles/s43247-021-00180-0). 
-<!-- NPP represents the potential of the soil to support biological activity depending on the biome it is located. -->
-This method utilizes RGEE and requires Earth engine to be set up properly to function. Using Earth Engine, the NPP for the target area is extracted and clipped to the target area.
+This method utilizes Google Earth Engine to extract and clip NPP for the target area.
 
 To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from $(kg C m^{-2} yr^{-1}$ to $g C m^-1 yr-1 (*1000))$. 
 With this the K<sub>sat</sub> factor becomes 
-
-<!-- markdown doesn't like the last equation -> $$ratio_{max} - ((ratio_{max} - 1) \div (1 + (\frac{NPP}{p})^q))$$
-where $ratio_{max} = 10^{3.5 - (1.5 \times sand%^{0.13})}$-->
 
 <img width="603" height="76" alt="image" src="https://github.com/user-attachments/assets/6ad9a0a0-3c79-4df8-b885-b2e3057169f4" />
 
