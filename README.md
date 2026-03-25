@@ -1,4 +1,4 @@
-# model/ code name
+# Landslide Probaility Model Name
 
 **Authors:** Sebastian Yerex
 
@@ -24,7 +24,7 @@ The [user guide](#https://github.com/sjofna/GitHubifycode/blob/main/User_guide_e
 ### Required software
 This describes the required software for the package. 
 
-To run this model, Google Earth Engine is required as many parameters are extracted directly from the platform using teh RGEE package. Additional packages are required in R such as GGplot2, dplyr, terra, whitebox, sf and geojsonio. 
+This model is resigned to run in R with the use of installable packages. Google Earth Engine is required to extract many parameters directly from the platform using teh RGEE package. Additional packages required are GGplot2, dplyr, terra, whitebox, sf and geojsonio. 
 
 Additional R scripts to the main driver are also required to run the model as they outline custom functions used in the model's main script. They, along with the main script, can be accessed through (Github folder?).
 
