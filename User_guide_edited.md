@@ -40,13 +40,14 @@
 ## 1. Initial Set Up
 
 ### 1.1 Required Packages
-To run this model, [GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are needed. To download run the `packages_to_install` function to install any required packages not downloaded. Once packages are downloaded, this line of code may be skipped in future use of the model.
 
+[GGplot2](https://ggplot2.tidyverse.org/), [dplyr](https://dplyr.tidyverse.org/), [terra](https://cran.r-project.org/web/packages/terra/index.html), [whitebox](https://whiteboxr.gishub.org/), [sf](https://r-spatial.github.io/sf/), [geojsonio](https://github.com/ropensci/geojsonio/), and [rgee](https://github.com/r-spatial/rgee) packages are required to run this model. 
+The `packages_to_install` function will prompt R to install any packages not downloaded.
 
 _Setting Up RGEE_
 
-1. Sign up for Earth Engine if not already.
-2. Set up Earth Engine user with user's personal email (replace email in the code line `ee_username <- `).
+1. Create a Earth Engine account if not yet signed up.
+2. Replace Earth Engine user with user's email.
 3. Connect to Earth Engine drive via `ee_Initialize` function.
    
 >[!TIP]
@@ -55,58 +56,61 @@ _Setting Up RGEE_
 
 ### 1.2 Other Required Scripts to Run the Package
 
-Ensure that all additional scripts are downloaded and file path names have been replaced with personal file paths. These additional scripts define custom functions that will be used in this package.
+Ensure that all additional scripts are downloaded and file path names have been replaced with personal file paths. These additional scripts define custom functions that will be used later in the model.
 
->[!NOTE]
->The file path provided in the package will need to be changed for the code to run correctly.
+>[!IMPORTANT]
+>If file paths are not accurate, the code will fail to run correctly. If this occurs, the warning message `No such file or directory` will pop up.
 
 
 ### 1.3 Set File Paths
 
-Modify the input `main_in` and output `main_out` paths with personal paths to ensure all inputs are coming from the correct folder and outputs are collected into one location for easy future access. Temporary paths `tmp_path` are set up as to not pollute the main output path with temporary files and allows for these files to be deleted easily as needed.
+Modify the input `main_in` and output `main_out` paths with personal paths to ensure inputs are sourced from the correct folder and outputs are collected into one location for future access. Temporary paths `tmp_path` are set up as to not pollute the main path with temporary files and allows for these files to be easily deleted as needed.
 
 
 ---
 
 ## 2. Initial Variable Computation
 
-These next sections of code lay the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. This can be helpful for minimizing computing power while working through the code. 
+These next sections of code lay the groundwork for later functions. Calculated objects can be removed with `rm` and `gc()` can be used to clean memory. 
+This can be helpful for minimizing computing power. 
 
 
 ### 2.1 Slope Calculation
 
-Slope is the main topographic variable used in this package. It is derived from the digital elevation model (DEM) using the `terra::terrain(dem, "slope")` [function](https://www.rdocumentation.org/packages/terra/versions/1.0-7/topics/slope). The output is in degrees.
+Slope is the main topographic variable used in this package. 
+It is derived from the digital elevation model (DEM) using the `terra::terrain(dem, "slope")` [function](https://www.rdocumentation.org/packages/terra/versions/1.0-7/topics/slope). 
+The output is in degrees.
 
 
 ### 2.2 Well Data
 
-Well data is needed for later calculation of soil depths. The distance to bedrock attribute will be used as the maximum possible soil depth that can be calculated.
-Well data is cleaned and converted to a vector file and points within a buffer distance of the DEM are collected to ensure presence of points for bedrock depth calculations. 
+Well data is accessed for calculation of soil depths. The distance to bedrock attribute will be used as the maximum possible soil depth in soil depth calulations outlined in section [2.4 Soil Depth](#24-soil-depth). To colled well data, it is first cleaned and converted to a vector. Points within a buffer distance of the DEM are then collected to ensure presence of points. 
 
 Additional plotting of well points is optional but can be helpful to check that adequite well points were captured within the buffer. If no points were captured, increase buffer until at least one point is present.
 
 
 ### 2.3 Road Filling
 
-To conduct road filling, a buffer is created around the called in road lines and this buffer file is rasterized. 15 meters is used to adequately remove the road surface, the cut slope (upslope embankment) and fill slope (downslope embankment). A new DEM is  created from the road raster and road cells are converted to NaN values using `ifel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
+To conduct road filling, a buffer is created around the called in road lines. This buffer file is rasterized. 15 meters is used to adequately remove the road surface, the cut slope (upslope embankment) and fill slope (downslope embankment). A new DEM is created from the road raster and road cell values are removed using `infel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
 
-The `inpaint_nans` function was developed by [John D'Errico(2026)](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390) and has been shown to reliably re-construct topography from high resolution DTMs for geomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case the former roads) using edge information. The function for method ‘0’, is a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy ([Harris et al., 2020](https://www.researchgate.net/publication/344301569_Array_programming_with_NumPy)) and scipy ([Virtanen et al., 2020](https://www.nature.com/articles/s41592-019-0686-2)), and then applied as a function in R using the package reticulate created by [(Ushey et al. 2026)](https://cran.r-project.org/web/packages/reticulate/index.html).
+The `inpaint_nans` function was developed by [John D'Errico(2026)](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390) and can reliably re-construct topography from high resolution DTMs. This function solves a PDE (partial differential equation) across voids (in this case the former roads) using edge information. The function for method ‘0’, a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy ([Harris et al., 2020](https://www.researchgate.net/publication/344301569_Array_programming_with_NumPy)) and scipy ([Virtanen et al., 2020](https://www.nature.com/articles/s41592-019-0686-2)), and then applied as a function in R using the package reticulate created by [(Ushey et al. 2026)](https://cran.r-project.org/web/packages/reticulate/index.html).
 
-The detrending function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, but this surface is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DEM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
+The function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, but is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DEM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
 
-These inpainting and detrending functions aim at developing a surface reconstruction framework that is capable of preserving topographic variability and morphometric properties (e.g., roughness, flow directions) for carrying out solid hydrogeomorphological elaborations. 
+These inpainting and detrending functions aim at developing a surface reconstruction framework that is capable of preserving topographic variability and morphometric properties (e.g., roughness, flow directions) for carrying out solid hydrogeomorphological analysis. 
 
 
 ### 2.4 Soil Depth
 
 ### 2.4.1 Calculate Soil Depth from Parameters
+
 Soil depth is calculated with the LRSC soil depth model translated from a regolith fortran program by [Baum et al. (2021)](https://github.com/rogerlew/usgs-regolith) coverted to R. This model allows for the estimation of soil mantle thickness in a digital landscape and assessment of debris flow based on parameters. 
 
 The LCSC model uses the equation 
 
 $$\mathrm d_r = C_0 + C_1 \bigtriangledown z + C_2 (S_c - |\bigtriangledown z|),       where      (S_c - |\bigtriangledown z|) > 0$$
 
-to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://www.nature.com/articles/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. The function is structured as follows:
+to calculate linear regression of slope and curvature. This method combines [Patton et al. (2018)](https://www.nature.com/articles/s41467-018-05743-y) with the linear slope model. The output d<sub>r</sub> is the regolith depth in meters. The function is structured as follows
 
 ```
 soil_depth <- lrsc_depth_model(
@@ -124,7 +128,7 @@ soil_depth <- lrsc_depth_model(
 )
 ```
 
-The parameters used are based the [model developer's](https://code.usgs.gov/ghsc/lhp/soil_depth) recommended values for the most similar climate, geology and vegetation to the target area. This values may need to be altered to fit the location being computed. 
+The parameters used are based the [model developer's](https://code.usgs.gov/ghsc/lhp/soil_depth) recommended values for the most similar climate, geology and vegetation to the sample target area. This values may need to be altered to fit the location being computed. 
 
 C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. This value is equal to the y-intercept in the linear regression. C<sub>0</sub> was calculated using the formula presented in the [Patton et al.](https://www.nature.com/articles/s41467-018-05743-y) paper where average soil thickness \bar{h} can be derived from the general equation 
 
@@ -134,33 +138,23 @@ $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}
 
 C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al. described this as sensitivity as $(\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C })$.
 
-C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians.
+C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians.
 
 For soil depth computation `sca` (Specific Catchment Area) is converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and deposition due to flow dynamics. Converting CA from SCA is a more robust method due to the many reliable methods available to calulate SCA compared to CA. Here, SCA is calculated using the [whitebox](https://whiteboxr.gishub.org/reference/wbt_d_inf_flow_accumulation.html) `wbt_d_inf_flow_accumulation` method 
 
 
 ### 2.4.2 Adjusting Soil Depth Around Roads
 
-The filled DEM created with the method explained in the [2.3 Road Filling](#23-road-filling) section is used to capture the difference in surface height of the original DEM and the Filled DEM. 
-This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. 
-Negative values are normalized to zero to remove unrealistic values from the layer. Maximum soil depth is then extracted from the original `soil_depth` layer. 
-Soil depth around roads is then clipped to the maximum soil depth. 
-This creates a layer where if at any point the `soil_depth_adj` is more than `soil_depth_max`, then the value from the `soil_depth_max` will be preferred. 
-This new layer now represents the realistic soil depth in areas both around roads and areas without roads combined. 
-Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. 
-The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated from inpainted and detrended DEM.
+The filled DEM created with methods explained in [2.3 Road Filling](#23-road-filling) is used to capture the difference in surface height of the original DEM and the filled DEM. This allows for a normalization of soil depth around the roads when `dem_difference` is subtracted from `soil_depth`. Negative values are normalized to zero to remove unrealistic values from the layer. Soil depth around roads is then clipped to the maximum soil depth extracted from the original `soil_depth` layer. This creates a layer where if at any point the `soil_depth_adj` is more than `soil_depth_max`, then the value from the `soil_depth_max` will be preferred. This new layer now represents the realistic soil depth in areas both around roads and areas without roads combined. Gaussian smoothing is applied to new soil depth layer to remove noise and road artifacts. The function `soil_depth <- soil_depth_smth` resets the object  `soil_depth` as the corrected soil depth instead of the previous result calculated from inpainted and detrended DEM.
 
 
 ### 2.5 Extract Soil Properties
 
-The function `get_soilgrids` is adapted from [Giulio Genova's code](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the target [SoilGrids](https://soilgrids.org) layer. 
+The function `get_soilgrids` is adapted from [Giulio Genova's code](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the target [SoilGrids](https://soilgrids.org) data. 
 
-This function is used to extract sand and clay percentages from layer depths of 0-100m. The `fix-soil`function converts the original units from $g/100g$ to a fraction for soil classifcation. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay )). This method ensures that all three values add up to one (100% of the soil) and is faster for processing.
+This function is used to extract sand and clay percentages from depths of 0-100m. The `fix-soil`function converts the original units from $g/100g$ to a fraction for soil classifcation. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay )). This method ensures that all three values add up to one (100% of the soil) and is faster for processing.
 
-Soil texture class can optionally be computed with the `soil_texture` function. 
-This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. 
-The function is based on [Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2024)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. 
-The function defines different silt and clay tresholds within twelve different soil types as seen in the figure below. 
+Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2024)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the figure below. 
 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
 
@@ -196,13 +190,11 @@ Fine sand and coarse sand are calculated based on the research done by [Panagos 
 
 ### 2.6.2 Calculating Shear Strength Parameters
 
-Based on soil parameters calculated in sections indicated in [2.5 Extract Soil Properties](#25-extract-soil-properties) and [2.6.1 Calculating Sand Subfractions](#261-calculating-sand-subfractions), internal fraction and cohesion can be calculated with the functions `int_friction` and `unsat_cohesion`, respectively. 
+Based on soil parameters calculated in sections indicated in [2.5 Extract Soil Properties](#25-extract-soil-properties) and [2.6.1 Calculating Sand Subfractions](#261-calculating-sand-subfractions), internal friction and cohesion can be calculated with the functions `int_friction` and `unsat_cohesion`, respectively. 
 
-There are two options of methods that can be used in the function `int_friction`. 
-Both the subfraction method and the GMD (geometric mean diameter) methods yeild similarly accurate results. 
-The GMD method is recommended as default but it is also encouraged to test both methods to see which is more accurate in the target region.
+There are two options of methods that can be used in the function `int_friction`. Both the subfraction method and the GMD (geometric mean diameter) methods yeild similarly accurate results. The GMD method is recommended as the default but it is also encouraged to test both methods to see which is more accurate in the target region.
 
-When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](https://www.sciencedirect.com/science/article/pii/S0167198718308031) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. 
+When `method = "subfraction"`, the model is based on findings by [Khaboushan et al. (2018)](https://www.sciencedirect.com/science/article/pii/S0167198718308031) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. 
 When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
 
 The GMD is based off of the methods proposed by [Luvai et al. (2022)](https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554) for calculating the angle of internal friction. 
@@ -224,19 +216,15 @@ Cohesion is calculated as a function of the subfractions of clay, coarse sand an
 Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed earlier with the `get_soilgrids` function.
 
 ### 2.7.1 Calculating K<sub>sat</sub>
-To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. 
-This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA Rosetta parameters](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/), EU method based on report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
-The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil [(Simons et al., 2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). 
-As K<sub>sat</sub> is logged and in the incorrect units, it is extracted using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
+To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA Rosetta parameters](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/), and the EU method based on report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192). The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil [(Simons et al., 2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the incorrect units, it is derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
 
-Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section [2.4 Soil Depth](#24-soil-depth). <!-- function needs to be fixed so skip explanation for now -->
+Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section [2.4 Soil Depth](#24-soil-depth). <!-- function needs to be fixed so skip full explanation for now -->
 
 
 ### 2.7.2 Calibrating K<sub>sat</sub>
- <!-- work in progress code -->
+ <!-- work in progress section of code -->
 
-This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022GL100389) and [Bonetti et al. (2021)](https://www.nature.com/articles/s43247-021-00180-0). 
-This method utilizes Google Earth Engine to extract and clip NPP for the target area.
+This function calibrates the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022GL100389) and [Bonetti et al. (2021)](https://www.nature.com/articles/s43247-021-00180-0). This method utilizes Google Earth Engine to extract and clip NPP for the target area.
 
 To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from $(kg C m^{-2} yr^{-1}$ to $g C m^-1 yr-1 (*1000))$. 
 With this the K<sub>sat</sub> factor becomes 
@@ -248,11 +236,11 @@ K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated
 
 ### 2.8 Calculating Normal Recharge with PCIC Data
 
-PCIC (Pacific Climate Impacts Consortium) data contains meteorological data that will be used to extract climate normal with a particular focus on normal precipitation within the target study area.
+PCIC (Pacific Climate Impacts Consortium) data contains meteorological data that will be used to extract climate normals with a focus on normal precipitation within the target study area.
 
-PCIC data is regionally specific data. If the target region is outside of this region, alternative data sources would be necessary to complete this step.
+[PCIC data](https://climatedata.ca/about/regional-partners/pacific-climate-impacts-consortium/) is regionally specific data. If the target region is outside of this region, alternative data sources would be necessary to complete this step.
 
-Average precipitation data is extracted from the accessed CSV file over the last 30 years. The data's resolution is extracted to create a raster template for the data. Datapoints from the PCIC data are transferred onto this raster, converted to meters per hour, and rasterized _(across the whole are?)_. The 90th and 10th percentiles of this climate data are also extracted from the original dataset.
+Average precipitation data is extracted from the accessed CSV file over the last 30 years. The data's resolution is defined to create a raster template for the data. Datapoints from the PCIC data are transferred onto this raster, converted to meters per hour, and rasterized. The 90th and 10th percentiles of this climate data are also extracted from the original dataset.
 
 
 ### 2.9 Soil Density
@@ -266,9 +254,9 @@ With $2650kg/m^3$ as the assumed density, `bulk_density` becomes a function of $
 
 Using Google Earth Engine, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data. A theoretical maximum root cohesion value is also set based on region. 
 
-Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2001)](https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977)](https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf).
+Regionally determined maximum root cohesion is determined based off of studies such as from [Schmidt et al, (2001)](https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977)](https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf).
 
-With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
+With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function is
 
 ```
 sbfi$COHESION <- as.numeric((sbfi$STRUCTURE_BASAL_AREA_AVG / BA_max) * root_cohesion)
@@ -281,43 +269,42 @@ The cohesion is then rasterized and clamped between zero and the set maximum roo
 
 The main effect of wildfires calculated in this section is burn severity. 
 
-To calculate burn severity, the difference normalized burn ration (dNBR) data is extracted from Google Earth Engine. 
+To calculate burn severity, the difference normalized burn ration (dNBR) data is extracted from Google Earth Engine. It should be noted that this dataset is a Canadian dataset [(Hermosilla et al. (2016)](https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation). If the target region is not in Canada, alternative data will need to be accessed.
 
-It should be noted that this dataset is a Canadian dataset [(Hermosilla et al. (2016)](https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation). If the target region is not in Canada, alternative data will need to be accessed.
+The data is clamped to the area of interest and then rescaled to the BARC256 for classification. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. These rescaled values are additionally clamped from 0 to 255 and classified based on the BAR256 system. 
 
-The data is clamped to the area of interest and then rescaled to the BARC256 for classification. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. 
-These rescaled values are additionally clamped from 0 to 255 and classified based on the BAR256 system. 
-
-Burn year data is also an excellent tool for assessing burning of the AOI at a specific time. By extracting burn year from the same projects as dNBR, a fire perimeter can be extracted based on the year of inetrest and burn severity of that season can be assessed using the function `dnbr_classified$clip(fire_perim)`. 
+Burn year data is also an excellent tool for assessing burning of the AOI at a specific time. By extracting burn year from the same projects as dNBR, a fire perimeter can be extracted based on the year of interest and burn severity of that season can be assessed using the function `dnbr_classified$clip(fire_perim)`. 
 
 > [!NOTE]
-> The task initiated prompts the user to export a burn severity raster to their Google Drive. After the file is properly uploaded it will need to be redownloaded and called in. Processing time for exporting the file this way are significantly shorter than attempting to save directly to the user's hard drive, however this option is possible.
+> The task initiated prompts the user to export a burn severity raster to their Google Drive. After the file is properly uploaded it will need to be downloaded and called in. Processing time for exporting the file this way are significantly shorter than attempting to save directly to the user's hard drive, however this option is possible.
 
 
 ### 2.11.1 Modifier Layers
 
 The burn severity output raster is utilized in this section of code to modify hydraulic conductivity (K<sub>sat</sub>) and root cohesion. 
 
-The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub), [Abdollahi et al. (2023)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213), and [Ebel & Moody (2020)](https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity based on the BARC256 classification.
+The modification of K<sub>sat</sub> based on findings by [Abdollahi et al. (2024)](https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub), [Abdollahi et al. (2023)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213) and [Ebel & Moody (2020)](https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865) indicated that hydraulic conductivity decreases about 66% in areas of moderate to high burn severity.
 
-Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub) and [Abdollahi et al. (2023)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and decreased 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction was assumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during a fire, the 25% and 80% decrease will be utilized by the code to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
+Root reinforcement based on burn severity is modified based on findings discussed by [Abdollahi et al. (2024)](https://www.sciencedirect.com/science/article/pii/S0013795224001388?via%3Dihub) and [Abdollahi et al. (2023)](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022EF003213)). Abdollahi et al. (2024) indicated that root cohesion decreased 50%  in moderately burned areas and 80% in high severity burn areas. Abdollahi et al. (2023) found that this reduction was assumed to be 25% in both moderate and high severity burned areas. As the 25% assumption is based on a single time-step during burning, the 25% and 80% decrease is utilized by default to better encompass the loss of root cohesion over time. Depending on the desired application, this modifier can be altered.
 
 
 ### 2.11.2 Uncertainty
 
-This section is optional but will allow for assessment of uncertainty in later calculated probability values. Minimum, maximum and standard deviation values are calculated for layers including friction angle, transmissivity, soil cohesion, root cohesion, soil depth, (bulk density) and (recharge). 
+This section in the model is optional but will allow for assessment of uncertainty in later calculated landslide probability values. Minimum, maximum and standard deviation values are calculated for layers including friction angle, transmissivity, soil cohesion, root cohesion, soil depth, (bulk density) and (recharge). 
 
+
+---
 
 ## 3. Landslide Probability
 
-The function `landslide_probability` utilizes the LHS (Latin hypercube Sampling) to randomly select probable variations of input parameters.  The function then runs a determined number of loops based on these parameter inputs to determine probability of the pixel failing under the determined conditions. 
+The function `landslide_probability` utilizes the LHS (Latin hypercube Sampling) to randomly select equally probable variations of input parameters.  The function then runs a determined number of loops based on these parameter inputs to determine probability of the pixel failing under the determined conditions. 
 
 
 ### 3.1 Inputs
 
-Calculated parameters from the sections prior are utilized to create a landslide probability raster map for the target area. Friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r), soil depth, bulk density and recharge are all used as paramenters. 
+Calculated friction angle (FA), transmissivity (transmiss), SCA (sca), soil cohesion (coh), root cohesion (coh_r), soil depth, bulk density and recharge parameters from the [2. Initial Variable Computation](#2-initial-variable-computation) sections are utilized to create a landslide probability raster map for the target area.
 
-All parameters can be used as individual rasters created through computation discussed in this guide but can also be input as constants. For example, recharge values can be set as one constant across a region to simulate seasonal change in hydrology. Bulk density can also be assigned for the same reason.
+All parameters can be used as individual rasters created through outlined computation but can also be input as constants. For example, bulk density or recharge values can be set as one constant across a region to simulate seasonal change in hydrology. 
 
 > [!IMPORTANT]
 > For this function to run all inputs must be true, spatial rasters and have the same resolution, CRS and extents. If these requirements are not met a error message with pop up.
@@ -325,11 +312,11 @@ All parameters can be used as individual rasters created through computation dis
 
 ### 3.2 Factor of Safety
 
-The factor of safety (Fs) is utlized within the `landslide_probability` function to assess the probability of slope failure at each pixel within the input raster based on the input parameters. This Fs defines the balance between resisting and driving forces on a slope.
+The factor of safety (Fs) is utlized within the `landslide_probability` function to assess the probability of slope failure at each pixel within the input raster. This Fs defines the balance between resisting and driving forces on a slope based on the input parameters.
 
 $$Fs = \frac {F_{resisting}}{F_{driving}}$$
 
-When this fraction is <1 the theoretical risk of the slope failing is high. If the fraction is >1, the slope is theoretically stable and at a low risk of failing. This equation used to determine the factor of safety in the package is:
+When this fraction is <1 the theoretical risk of the slope failing is high. If the fraction is >1, the slope is theoretically stable and at a low risk of failing. This equation used to determine the factor of safety in the package is
 
 $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_w}{bulk.density})) \times tan(FA))}{sin(slope)}$$
 
@@ -345,7 +332,7 @@ The main code of the package does not include calculations for the factor of saf
 
 ### 3.3 Computing Probability
 
-The main function that calculates landslide probability is
+This is the main function driving the model. The main function that calculates landslide probability is
 
 ```
 prob_of_failure <- landslide_probability(
@@ -383,26 +370,29 @@ As stated prior, this function utilizes the LHS method to determine probability 
 
 Two types of hydrological scenarios can be utilized to calculate landslide probability. 
 
-Steady state wetness/ steady state hydrological model can be utilized to compute landslide probability based on long term scales depending on persistent recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is calculated from the equation $\frac{R}{transmissivity} \times \frca{sca}{sin(slope)}$ where the output is clamped between zero and one.
+Steady state wetness/ steady state hydrological model can be utilized to compute landslide probability based on long term scales depending on persistent recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is calculated from the equation $\frac{R}{transmissivity} \times \frca{sca}{sin(slope)}$ where the output is clamped between zero and one to represent the amount of the soil package saturated with water.
 
-Transient wetness scenarios/ transient hydrology model can be utilized to compute landslide probability over the period of a precipitation event. In this scenario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event.
-To model transient wetness the Optimized Green-Ampt Solver is used (source?). 
-The equation used in the model *(add this in)* uses the numerical method to iteratively solve the model. 
-After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipitation event. 
-This saturation amount informs the function of the true weight of the soil which then alters the factor of safety.
+Transient wetness scenarios/ transient hydrology model can be utilized to compute landslide probability over the period of a precipitation event. In this scenario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event. To model transient wetness the [Optimized Green-Ampt Solver](https://soilwater.github.io/pynotes-agriscience/exercises/green_ampt.html)*(real source?)* is used. The equation used is
 
-<!-- not fully clear on how these can be determined by the user... do they need to do so in the main drive or alter it in the landslide probability code? ig transient wetness = new so maybe in the main code later? -->
+$$ *(add this in)* $$
+
+The model uses the numerical method to iteratively solve the model. After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipitation event. This saturation amount informs the function of the true weight of the soil which then alters the factor of safety.
+
+<!-- not fully clear on how these can be determined by the user... do they need to do so in the main drive or alter it in the landslide probability code? ig transient wetness = new so maybe in the main code later? also wetness used in FS which is in landslide prob function - maybe just hiding in there? -->
 
 
 ### 3.3.2 Latin Hypercube Sampling Method
 
-To ensure accurate landslide probability computation the Latin Hypercube Sampling (LHS) technique is utilized to sample random values from equally probable bins for each parameter *(insert fig for added visual)*. 
+To ensure robust landslide probability computation, the Latin Hypercube Sampling (LHS) technique is utilized to sample random values from equally probable bins for each parameter.
+
+*(insert fig for added visual)*
+
 To create the LHS matrix, each parameters distribution is predefined by normal ranges found within the target area. These definitions can be found within the `perturb_settings` of the function. 
 The distribution of the parameters is then extracted, normalized around a mean of zero and split into the determined equally probable bins denoted as `n_bins`. 
 The matrix extracts a random sample from a bin from each parameter, alters each pixels data to decrease or increase as a function of the sample extracted. 
 The landslide probability function computes each pixels factor of saftey based on these altered parameters. 
 This simulation then repeats for all equally probable bins creating a range of FS values for each pixel. 
-The model then computes each pixels probability of failure based on the normal range of parameters by the function:
+The model then computes each pixels probability of failure based on the normal range of parameters by the function
 
 `prob_landslide <- prob_landslide + (inv_n_bins / (1 + exp(alpha * (fs - 1))))`
 
@@ -416,14 +406,18 @@ where $b$ is `n_bins`.
 >  As `n_bins` is increased by the user, the number of equal probable bins increases which increases processing time but can additionally increase confidence in the probability output.
 
 
-
 ### 3.4 Expected Outputs
 
 The output from this model is a raster based probability of landslide occuring per pixel based on the input parameters.
+
 *(put some figs in)*
 
 
+---
+
 ## 4. References
+
+<!-- still need source from Optimized Green-Ampt Solver -->
 
 Abdollahi, M., Vahedifard, F., & Leshchinsky, B. A. (2024). Hydromechanical modeling of evolving post-wildfire regional-scale landslide susceptibility. *Engineering Geology, 335*, Article 107538. https://doi.org/10.1016/j.enggeo.2024.107538
 
