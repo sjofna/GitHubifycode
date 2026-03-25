@@ -90,7 +90,7 @@ Additional plotting of well points is optional but can be helpful to check that 
 
 To conduct road filling, a buffer is created around the called in road lines and this buffer file is rasterized. 15 meters is used to adequately remove the road surface, the cut slope (upslope embankment) and fill slope (downslope embankment). A new DEM is  created from the road raster and road cells are converted to NaN values using `ifel`. The `inpaint_nans` function is then applied reconstruct hillslope topography and detrending is done to create a more natural surface for computation. 
 
-The `inpaint_nans` function was developed by [John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390) and has been shown to reliably re-construct topography from high resolution DTMs for geomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case the former roads) using edge information. The function for method ‘0’, is a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy ([Harris et al., 2020](https://www.researchgate.net/publication/344301569_Array_programming_with_NumPy)) and scipy ([Virtanen et al., 2020](https://www.nature.com/articles/s41592-019-0686-2)) and then applied as a function in R using the package [reticulate](https://cran.r-project.org/web/packages/reticulate/index.html) (Ushey et al., 2025)<!--add citation-->.
+The `inpaint_nans` function was developed by [John D'Errico(2026)](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans).  This method was similarly used by [Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390) and has been shown to reliably re-construct topography from high resolution DTMs for geomorphometric analysis. This function solves a PDE (partial differential equation) across voids (in this case the former roads) using edge information. The function for method ‘0’, is a simple plate metaphor approach to solving the PDE, was translated into python for computational efficiency using the packages numpy ([Harris et al., 2020](https://www.researchgate.net/publication/344301569_Array_programming_with_NumPy)) and scipy ([Virtanen et al., 2020](https://www.nature.com/articles/s41592-019-0686-2)), and then applied as a function in R using the package reticulate created by [(Ushey et al. 2026)](https://cran.r-project.org/web/packages/reticulate/index.html).
 
 The detrending function `detrend_surface` and `infel` add noise back to the inpainted surface. Where inpainting is applied the surface follows the general topographic trend, but this surface is unnaturally smooth. To detrend the surface in these areas first the entire surface is smoothed using a 3 by 3 mean filter, the residual topography is derived by subtracting the smoothed surface from the initial DEM. Next, for each inpainted cell a large moving window (41 by 41) is used to randomly sample a surrounding residual value, this residual is then added to the smooth, inpainted, cell value.
 
@@ -100,7 +100,7 @@ These inpainting and detrending functions aim at developing a surface reconstruc
 ### 2.4 Soil Depth
 
 ### 2.4.1 Calculate Soil Depth from Parameters
-Soil depth is calculated with the LRSC soil depth model translated from a [regolith](https://github.com/rogerlew/usgs-regolith) fortran program to R. This model allows for the estimation of soil mantle thickness in a digital landscape and assessment of debris flow based on parameters. 
+Soil depth is calculated with the LRSC soil depth model translated from a regolith fortran program by [Baum et al. (2021)](https://github.com/rogerlew/usgs-regolith) coverted to R. This model allows for the estimation of soil mantle thickness in a digital landscape and assessment of debris flow based on parameters. 
 
 The LCSC model uses the equation 
 
@@ -136,7 +136,7 @@ C<sub>1</sub> represents the soil's sensitivity to slope curvature. Patton et al
 
 C<sub>2</sub> represents the control of slope angle on soil thickness. Larger C<sub>2</sub> indicates more thinning due to increasing slope angle. This this is not found in the Patton et al. equation. C<sub>2</sub> can be derived from the equation $h_1 = C_2 \times ( sc - tan(slope\theta)$. $(sc)$ is calculated from the tangent of `theta_c` in radians.
 
-For soil depth computation `sca` (Specific Catchment Area) is converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and deposition due to flow dynamics. Converting CA from SCA is a more robust method due to the many reliable methods available to calulate SCA compared to CA. Here, SCA is calculated using the [whitebox `wbt_d_inf_flow_accumulation`](https://whiteboxr.gishub.org/reference/wbt_d_inf_flow_accumulation.html) method 
+For soil depth computation `sca` (Specific Catchment Area) is converted to `ca` (Catchment Area) to account for the potential upslope soil erosion and deposition due to flow dynamics. Converting CA from SCA is a more robust method due to the many reliable methods available to calulate SCA compared to CA. Here, SCA is calculated using the [whitebox](https://whiteboxr.gishub.org/reference/wbt_d_inf_flow_accumulation.html) `wbt_d_inf_flow_accumulation` method 
 
 
 ### 2.4.2 Adjusting Soil Depth Around Roads
@@ -159,7 +159,7 @@ This function is used to extract sand and clay percentages from layer depths of 
 
 Soil texture class can optionally be computed with the `soil_texture` function. 
 This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. 
-The function is based on [Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2014)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. 
+The function is based on [Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2024)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. 
 The function defines different silt and clay tresholds within twelve different soil types as seen in the figure below. 
 
 ![Soil Classifcation Triangle (Hoffmann, 2026)](https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/45468/versions/2/screenshot.png)
@@ -191,7 +191,7 @@ Based on which classification is best represented by each model, the correspondi
 > The Shirazi–Boersma model uses the function $[\Phi (0.698810 + 0.812098 \times \Phi^{-1}( 1 - \mathrm sand)) - 1 + \mathrm sand]$
 
 
-Fine sand and coarse sand are calculated based on the research done by [Panagos et al. (20140](https://www.sciencedirect.com/science/article/pii/S0048969714001727). This function `get_fs` and `get_cs` are the same as the ESDAC model from the function above which indicates that fine sand and coarse sand can be represented with the equation $( \frac{1}{5} \times \mathrm sand )$ as they and very fine sand represent one of five equal subcategories of sand. 
+Fine sand and coarse sand are calculated based on the research done by [Panagos et al. (2014)](https://www.sciencedirect.com/science/article/pii/S0048969714001727). This function `get_fs` and `get_cs` are the same as the ESDAC model from the function above which indicates that fine sand and coarse sand can be represented with the equation $( \frac{1}{5} \times \mathrm sand )$ as they and very fine sand represent one of five equal subcategories of sand. 
 
 
 ### 2.6.2 Calculating Shear Strength Parameters
@@ -205,7 +205,7 @@ The GMD method is recommended as default but it is also encouraged to test both 
 When `method = "subfraction"`, the model is based on a study by [Khaboushan et al. (2018)](https://www.sciencedirect.com/science/article/pii/S0167198718308031) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. 
 When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
 
-The GMD is based off of the methods proposed by [Luvai et al., (2022)](https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554) for calculating the angle of internal friction. 
+The GMD is based off of the methods proposed by [Luvai et al. (2022)](https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554) for calculating the angle of internal friction. 
 With this method FA becomes $( 1.43 + 1.23 \times \mathrm GMD )$ with GMD being $(\mathrm sand * log10(D_{sand}) + silt * log10(D_{silt}) + clay * log10(D_{clay}) )$. 
 The D values used in the model are the the mean grain size of each particle category defined by the USDA and are defined in the table below.
 
@@ -225,7 +225,7 @@ Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed
 
 ### 2.7.1 Calculating K<sub>sat</sub>
 To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. 
-This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA texture codes *(?)*](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/) and EU method based off of Future Water report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
+This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA Rosetta parameters](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/), EU method based on report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192).
 The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil [(Simons et al., 2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). 
 As K<sub>sat</sub> is logged and in the incorrect units, it is extracted using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
 
@@ -235,7 +235,7 @@ Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth e
 ### 2.7.2 Calibrating K<sub>sat</sub>
  <!-- work in progress code -->
 
-This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](https://agupubs-onlinelibrary-wiley-com.ezproxy.library.uvic.ca/doi/10.1029/2022GL100389) and [Bonetti et al., 2021](https://www.nature.com/articles/s43247-021-00180-0). 
+This function aims to calibrate the calculated K<sub>sat</sub> for structural influence using the [Modis net primary production (NPP)](https://modis.gsfc.nasa.gov/data/dataprod/mod17.php) based on findings by [Fan et al. (2022)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022GL100389) and [Bonetti et al. (2021)](https://www.nature.com/articles/s43247-021-00180-0). 
 This method utilizes Google Earth Engine to extract and clip NPP for the target area.
 
 To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from $(kg C m^{-2} yr^{-1}$ to $g C m^-1 yr-1 (*1000))$. 
@@ -257,7 +257,7 @@ Average precipitation data is extracted from the accessed CSV file over the last
 
 ### 2.9 Soil Density
 
-Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method based on [source?](https://github.com/usda-ars-ussl/rosetta-soil) to assign volumetric water content in the soil based on its texture class. This model uses the density of quartz which is $2650kg/m^3$.
+Soil bulk density is calculated with the `bulk_density` function. This function uses ROSETTA method found in the [rosetta-soil package](https://github.com/usda-ars-ussl/rosetta-soil) to assign volumetric water content in the soil based on its texture class. This model uses the density of quartz which is $2650kg/m^3$.
 
 With $2650kg/m^3$ as the assumed density, `bulk_density` becomes a function of $(density_{assumed} \times (1 - v)$. '$v$' represents theta_s ($\theta _s$). This value represents saturated volumetric water content which is dependant on the soil texture class.
 
@@ -266,7 +266,7 @@ With $2650kg/m^3$ as the assumed density, `bulk_density` becomes a function of $
 
 Using Google Earth Engine, the satellite based forest inventory (SBFI) data is collected and bound by the area of interest (AOI). The SBFI is converted into a vector and theoretical maximum of basal area stand is set based off of regional data. A theoretical maximum root cohesion value is also set based on region. 
 
-Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2021)](https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977)](https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf).
+Regionally determined root cohesion with numbers being sources from studies such as from [Schmidt et al, (2001)](https://cdnsciencepub.com/doi/10.1139/t01-031), [Sakals & Sidle (2004)](https://cdnsciencepub.com/doi/10.1139/x03-268), and [Burroughs & Thomas (1977)](https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf).
 
 With the basal area maximum ($BA_{max}$), maximum root cohesion ($RCoh_{max}$) and average basal area (BA) extracted from SBFI data, root cohesion can be normalized with equation $((BA \div BA_{max}) \times RCoh_{max})$. In the code, the function that does this calulation looks like
 
@@ -283,7 +283,7 @@ The main effect of wildfires calculated in this section is burn severity.
 
 To calculate burn severity, the difference normalized burn ration (dNBR) data is extracted from Google Earth Engine. 
 
-It should be noted that [this dataset](https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation) is a Canadian dataset. If the target region is not in Canada, alternative data will need to be accessed.
+It should be noted that this dataset is a Canadian dataset [(Hermosilla et al. (2016)](https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation). If the target region is not in Canada, alternative data will need to be accessed.
 
 The data is clamped to the area of interest and then rescaled to the BARC256 for classification. To rescale the dNBR the equation $(dNBR_{(raw)} \times 2 + 55)$ is utilized. 
 These rescaled values are additionally clamped from 0 to 255 and classified based on the BAR256 system. 
@@ -425,82 +425,59 @@ The output from this model is a raster based probability of landslide occuring p
 
 ## 4. References
 
-[John D'Errico](https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans) for inpainting code.  
-
-[Crema et al. (2020)](https://onlinelibrary.wiley.com/doi/full/10.1002/esp.47390)
-
-Crema, S., Llena, M., Calsamiglia, A., Estrany, J., Marchi, L., Vericat, D., & Cavalli, M. (2020). Can inpainting improve digital terrain analysis? Comparing techniques for void filling, surface reconstruction and geomorphometric analyses. *Earth Surface Processes and Landforms, 45*(3), 736–755. https://doi.org/10.1002/esp.4739
-
-[Harris et al., 2020](https://www.researchgate.net/publication/344301569_Array_programming_with_NumPy)
-
-Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M. H., Brett, M., Haldane, A., del Río, J. F., Wiebe, M., Peterson, P., … Oliphant, T. E. (2020). Array programming with NumPy. *Nature (London), 585*(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2
-
-[Virtanen et al., 2020](https://www.nature.com/articles/s41592-019-0686-2)
-
-Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … van Mulbregt, P. (2020). SciPy 1.0: fundamental algorithms for scientific computing in Python. *Nature Methods, 17*(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
-
-[regolith](https://github.com/rogerlew/usgs-regolith) USGS regolith - "A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard assessment" (cites source on github below)
-Baum, R.L., Bedinger, E.C., and Tello, M.J., 2021, REGOLITH--A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard assessment: U.S. Geological Survey Software Release, https://doi.org/10.5066/P9U2RDWJ
-
-[Ushey et al., 2025] <!--citation of the reticulate package (?)-->
-
-[Patton et al. (2018)](https://www.nature.com/articles/s41467-018-05743-y)
-
-Patton, N. R., Lohse, K. A., Godsey, S. E., Crosby, B. T., & Seyfried, M. S. (2018). Predicting soil thickness on soil mantled hillslopes. *Nature Communications, 9*(1), Article 3329. https://doi.org/10.1038/s41467-018-05743-y
-
-[Giulio Genova's code](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) for soil grids
-
-[Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin)
-
-[Mathews (2014)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads)
-
-[Corral-Pazos-de-Provenset al. (2018)](https://onlinelibrary.wiley.com/doi/full/10.1002/ldr.3121)
-
-Corral‐Pazos‐de‐Provens, E., Domingo‐Santos, J. M., & Rapp‐Arrarás, Í. (2018). Estimating the very fine sand fraction for calculating the soil erodibility K‐factor. *Land Degradation & Development, 29*(10), 3595–3606. https://doi.org/10.1002/ldr.3121
-
-[Panagos et al. (20140](https://www.sciencedirect.com/science/article/pii/S0048969714001727)
-
-Panagos, P., Meusburger, K., Ballabio, C., Borrelli, P., & Alewell, C. (2014). Soil erodibility in Europe: A high-resolution dataset based on LUCAS. *The Science of the Total Environment*, 479–480, 189–200. https://doi.org/10.1016/j.scitotenv.2014.02.010
-
-[Khaboushan et al. (2018)](https://www.sciencedirect.com/science/article/pii/S0167198718308031)
-
-Amiri Khaboushan, E., Emami, H., Mosaddeghi, M. R., & Astaraei, A. R. (2018). Estimation of unsaturated shear strength parameters using easily-available soil properties. *Soil & Tillage Research*, 184, 118–127. https://doi.org/10.1016/j.still.2018.07.006
-
-[Luvai et al., (2022)](https://onlinelibrary.wiley.com/doi/full/10.1155/2022/2122554)
-
-Luvai, A., Obiero, J., & Omuto, C. (2022). Soil Loss Assessment Using the Revised Universal Soil Loss Equation (RUSLE) Model. *Applied and Environmental Soil Science*, 2022, 1–14. https://doi.org/10.1155/2022/2122554
-
-[USDA texture codes *(?)*](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/)
-
-[Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) <!-- no citation on uvic -->
-
-[Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192)
-
-[Modis net primary production (NPP)](https://modis.gsfc.nasa.gov/data/dataprod/mod17.php)
-
-soil density source? [???](https://github.com/usda-ars-ussl/rosetta-soil)
-
-[Schmidt et al, (2021)](https://cdnsciencepub.com/doi/10.1139/t01-031) (2001!!!! not 2021)
-
-Schmidt, K., Roering, J., Stock, J., Dietrich, W., Montgomery, D., & Schaub, T. (2001). The variability of root cohesion as an influence on shallow landslide susceptibility in the Oregon Coast Range. *Canadian Geotechnical Journal, 38*(5), 995–1024. https://doi.org/10.1139/cgj-38-5-995
-
-[Sakals & Sidle (2004)](https://cdnsciencepub.com/doi/10.1139/x03-268)
-
-Sakals, M. E., & Sidle, R. C. (2004). A spatial and temporal model of root cohesion in forest soils. *Canadian Journal of Forest Research, 34*(4), 950–958. https://doi.org/10.1139/x03-268
-
-[Burroughs & Thomas (1977)](https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1977a/Burroughs_1977_Declining_Root_Strenght-in_Douglas-Fir_after_felling_as_a_factor_in_slope_stability.pdf)
-  <!-- no citation on uvic -->
-  
-burn severity data via rgee (need to cite?) [this dataset](https://gee-community-catalog.org/projects/ca_forest_fire/#dataset-citation)
-
-[Abdollahi et al. (2024)](https://www.sciencedirect.com/science/article/pii/S0013795224001388)
-
 Abdollahi, M., Vahedifard, F., & Leshchinsky, B. A. (2024). Hydromechanical modeling of evolving post-wildfire regional-scale landslide susceptibility. *Engineering Geology, 335*, Article 107538. https://doi.org/10.1016/j.enggeo.2024.107538
-
-[Abdollahi et al. (2023)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022EF003213)
 
 Abdollahi, M., Vahedifard, F., & Tracy, F. T. (2023). Post‐Wildfire Stability of Unsaturated Hillslopes Against Rainfall‐Triggered Landslides. *Earth’s Future, 11*(3), Article 2022. https://doi.org/10.1029/2022EF003213
 
-[Ebel & Moody (2020)](https://onlinelibrary.wiley.com/doi/10.1002/hyp.13865)
-  
+Amiri Khaboushan, E., Emami, H., Mosaddeghi, M. R., & Astaraei, A. R. (2018). Estimation of unsaturated shear strength parameters using easily-available soil properties. *Soil & Tillage Research*, 184, 118–127. https://doi.org/10.1016/j.still.2018.07.006
+
+Baum, R.L., Bedinger, E.C., and Tello, M.J., 2021, REGOLITH--A Fortran 95 program for estimating soil mantle thickness in a digital landscape for landslide and debris-flow hazard 
+
+Bonetti, S., Wei, Z., & Or, D. (2021). A framework for quantifying hydrologic effects of soil structure across scales. Communications Earth & Environment, 2(1), Article 107. https://doi.org/10.1038/s43247-021-00180-0
+
+Burroughs, E. Jr. R., & Thomas , B. R. (1977). Landslide Hazard Rating for the Oregon Coast Range. https://forest.moscowfsl.wsu.edu/engr/library/Burroughs/Burroughs1985a/1985a.html  
+
+Corral‐Pazos‐de‐Provens, E., Domingo‐Santos, J. M., & Rapp‐Arrarás, Í. (2018). Estimating the very fine sand fraction for calculating the soil erodibility K‐factor. *Land Degradation & Development, 29*(10), 3595–3606. https://doi.org/10.1002/ldr.3121
+
+Crema, S., Llena, M., Calsamiglia, A., Estrany, J., Marchi, L., Vericat, D., & Cavalli, M. (2020). Can inpainting improve digital terrain analysis? Comparing techniques for void filling, surface reconstruction and geomorphometric analyses. *Earth Surface Processes and Landforms, 45*(3), 736–755. https://doi.org/10.1002/esp.4739
+
 Ebel, B. A., & Moody, J. A. (2020). Parameter estimation for multiple post‐wildfire hydrologic models. *Hydrological Processes, 34*(21), 4049–4066. https://doi.org/10.1002/hyp.13865
+
+Fan, L., Lehmann, P., Zheng, C., & Or, D. (2022). Vegetation‐Promoted Soil Structure Inhibits Hydrologic Landslide Triggering and Alters Carbon Fluxes. *Geophysical Research Letters, 49*(18). https://doi.org/10.1029/2022GL100389
+
+Giulio Genova (2024). webdav_from_R_terra: Access and download target SoilGrids. R code, https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c 
+
+Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M. H., Brett, M., Haldane, A., del Río, J. F., Wiebe, M., Peterson, P., … Oliphant, T. E. (2020). Array programming with NumPy. *Nature (London), 585*(7825), 357–362. https://doi.org/10.1038/s41586-020-2649-2
+
+Hermosilla, T., Wulder, M.A., White, J.C., Coops, N.C., Hobart, G.W., Campbell, L.B., 2016. Mass data processing of time series Landsat imagery:
+
+Holger Hoffmann (2026). soil_classification(sand, clay, T,varargin) (https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin), MATLAB Central File Exchange. Retrieved March 24, 2026.
+
+John D'Errico (2026). inpaint_nans (https://www.mathworks.com/matlabcentral/fileexchange/4551-inpaint_nans), MATLAB Central File Exchange. Retrieved March 24, 2026.
+
+Luvai, A., Obiero, J., & Omuto, C. (2022). Soil Loss Assessment Using the Revised Universal Soil Loss Equation (RUSLE) Model. *Applied and Environmental Soil Science*, 2022, 1–14. https://doi.org/10.1155/2022/2122554
+
+Mathews, N.W., Leshchinsky, B.A., 2024, RegionGrow3D: A Software for Characterizing Discrete Three-Dimensional Landslide Source Areas on a Regional Scale, U.S. Geological Survey software release, https://doi.org/10.5066/P1BSMGGD.
+
+NASA. (n.d.). MODIS Gross Primary Production (GPP)/Net Primary Production (NPP). https://modis.gsfc.nasa.gov/data/dataprod/mod17.php 
+Panagos, P., Meusburger, K., Ballabio, C., Borrelli, P., & Alewell, C. (2014). Soil erodibility in Europe: A high-resolution dataset based on LUCAS. *The Science of the Total Environment*, 479–480, 189–200. https://doi.org/10.1016/j.scitotenv.2014.02.010
+
+Patton, N. R., Lohse, K. A., Godsey, S. E., Crosby, B. T., & Seyfried, M. S. (2018). Predicting soil thickness on soil mantled hillslopes. *Nature Communications, 9*(1), Article 3329. https://doi.org/10.1038/s41467-018-05743-y
+pixels to data products for forest monitoring. *International Journal of Digital Earth 9*(11), 1035-1054.
+
+Poggio, L., de Sousa, L. M., Batjes, N. H., Heuvelink, G. B. M., Kempen, B., Ribeiro, E., and Rossiter, D.: SoilGrids 2.0: producing soil information for the globe with quantified spatial uncertainty, SOIL, 7, 217–240, 2021. https://doi.org/10.5194/soil-7-217-2021
+
+Sakals, M. E., & Sidle, R. C. (2004). A spatial and temporal model of root cohesion in forest soils. *Canadian Journal of Forest Research, 34*(4), 950–958. https://doi.org/10.1139/x03-268
+
+Schmidt, K., Roering, J., Stock, J., Dietrich, W., Montgomery, D., & Schaub, T. (2001). The variability of root cohesion as an influence on shallow landslide susceptibility in the Oregon Coast Range. *Canadian Geotechnical Journal, 38*(5), 995–1024. https://doi.org/10.1139/cgj-38-5-995
+
+Simons , G., Koster , R., & Droogers, P. (2020, October). HiHydroSoil v2.0 - High Resolution Soil Maps of Global Hydraulic Properties. Future Water. https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf 
+
+Skaggs (2026). rosetta-soil: implementation of Rosetta. Python Package version 0.3.2, https://pypi.org/project/rosetta-soil/
+
+Tóth, B., Weynants, M., Nemes, A., Makó, A., Bilas, G., & Tóth, G. (2015). New generation of hydraulic pedotransfer functions for Europe. European Journal of Soil Science, 66(1), 226–238. https://doi.org/10.1111/ejss.12192
+
+USDA. (2019, May 21). ROSETTA Class Average Hydraulic Parameters. USDA Agriculture Research Service. https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/ 
+Ushey K, Allaire J, and Tang Y (2026). reticulate: Interface to 'Python'. R package version 1.45.0, https://rstudio.github.io/reticulate/.
+
+Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … van Mulbregt, P. (2020). SciPy 1.0: fundamental algorithms for scientific computing in Python. *Nature Methods, 17*(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
