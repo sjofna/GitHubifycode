@@ -312,16 +312,34 @@ All parameters can be used as individual rasters created through outlined comput
 
 ### 3.2 Factor of Safety
 
-The factor of safety (Fs) is utlized within the `landslide_probability` function to assess the probability of slope failure at each pixel within the input raster. This Fs defines the balance between resisting and driving forces on a slope based on the input parameters.
+The factor of safety (FS) is utlized within the `landslide_probability` function to assess the probability of slope failure at each pixel within the input raster. This Fs defines the balance between resisting and driving forces on a slope based on the input parameters.
 
-$$Fs = \frac {F_{resisting}}{F_{driving}}$$
+$$FS = \frac {F_{resisting}}{F_{driving}}$$
 
-When this fraction is <1 the theoretical risk of the slope failing is high. If the fraction is >1, the slope is theoretically stable and at a low risk of failing. This equation used to determine the factor of safety in the package is
+When this fraction is <1 the theoretical risk of the slope failing is high. If the fraction is >1, the slope is theoretically stable and at a low risk of failing. 
+
+The model computes the FS based on the infinite-slope stability equation, derived from the Mohr Coulomb failure law, which defines Factor of Safety (FS) for an infinite plane as the ratio of resistive frictional and cohesive forces, decreased by pore-water-pressure, to the gravitational destabilizing force. Given by [Pack et al. (1998)](source) the infinite-slope FS model is expressed as
+
+$$FS = \frac{C + cos \theta [1 - w_s r] tan \phi}{sin \theta}$$ where C is the combined, dimensionless, cohesion of soil and root reinforcement and is calculated as $$C = \frac{C_r +C_s}{h \rho_s g}$$ 
+
+>$C_r$ and $C_s$ represent the cohesion values from root and soil, respectively.
+>$h$ is the thickness (m) of soil perpendicular to the slope.
+>$g$ is the acceleration of gravity at 9.81m/s<sup>2</sup>.
+>$r$ is the density ratio of water, $\rho_w$ (kg/m<sup>3</sup>) to $\rho_s$ (kg/m<sup>3</sup>), 𝜙 is the soil internal friction angle (FA), and 𝜃 is slope.
+>$w_s$ is relative wetness, considered to be the depth of the water table ($h_w$) relative to the slope-perpendicular soil thickness.
+
+Assuming that shallow lateral subsurface flow follows the topographic gradient and is in equilibrium with steady state recharge, $R$ (m/hr), allows lateral discharge at any given point to be the product of $R$ and upslope specific contributing area, $a$ (m). By considering hydraulic conductivity, $K_{sat}$ (m/hr) to be depth independent, above an impermeable layer, $w_s$ is described as
+
+$$W_s = min (\frac{R}{T} \frac{a}{sin \theta} , 1)$$ 
+
+where, transmissivity $T$ (m<sup>2</sup>/hr) is the product of $h$ and $K_{sat}$. Relative wetness has an upper bound of 1, representing a fully saturated soil column (i.e. $h_w = h$).
+
+
+To compute FS in the model, this equation is converted to
 
 $$FS = \frac{(cohesion^* + cos(slope) \times (1 - wetness \times (\frac{density_w}{bulk.density})) \times tan(FA))}{sin(slope)}$$
 
 > $cohesion^*$ is defined by $(\frac{coh \times 1000 + coh_r \times 1000)}{(bulk.density \times g \times depth_{soil})}$
-> with $g$ representing the acceleration of gravity at 9.81m/s<sup>2</sup>.
 >
 > $wetness$ is defined by a precomputed value or a function of $(\frac{R}{transmissivity} \times \frac{sca}{sin(slope)})$ where $R$ is the computed recharge rate at m/hr. Thes values clamped between 0 and 1.
 >
@@ -368,24 +386,32 @@ As stated prior, this function utilizes the LHS method to determine probability 
 
 ### 3.3.1 Hydrological Variables
 
-Two types of hydrological scenarios can be utilized to calculate landslide probability. 
+To account for the influence of both long-term and transient hydrology on slope stability, and following previous studies (Miao et al., 2025), we reconfigure relative wetness into two components. The first, describes long-term, steady-state lateral subsurface flow, $w_s$. The second, describes vertical flow governed by transient rainfall infiltration during short-term events (Baum et al., 2008). In the model these options are represented as steady state and transient wetness. 
 
-Steady state wetness/ steady state hydrological model can be utilized to compute landslide probability based on long term scales depending on persistent recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is calculated from the equation $\frac{R}{transmissivity} \times \frca{sca}{sin(slope)}$ where the output is clamped between zero and one to represent the amount of the soil package saturated with water.
+Steady state wetness/ steady state hydrological model can be utilized to compute landslide probability based on long term scales depending on persistent recharge rates in the target area. This scenario can also be utilized to determine future climate scenarios. Steady state wetness is calculated from the equation $\frac{R}{transmissivity} \times \frac{sca}{sin(slope)}$ where the output is clamped between zero and one to represent the amount of the soil package saturated with water.
 
-Transient wetness scenarios/ transient hydrology model can be utilized to compute landslide probability over the period of a precipitation event. In this scenario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event. To model transient wetness the [Optimized Green-Ampt Solver](https://soilwater.github.io/pynotes-agriscience/exercises/green_ampt.html)*(real source?)* is used. The equation used is
+The transient hydrology model can be utilized to compute landslide probability over the period of a precipitation event. In this scenario, rain intensity and duration of the event can be used as parameters to calculate the probability of landslides during the given event.
 
-$$ *(add this in)* $$
+The sum of these two components, termed here as total wetness ($W$), is given as 
 
-The model uses the numerical method to iteratively solve the model. After the model is solved it can be used to determine the total saturation of a soil package during the course of the precipitation event. This saturation amount informs the function of the true weight of the soil which then alters the factor of safety.
+$$W = min (w_s + w_t, 1)$$
 
-<!-- not fully clear on how these can be determined by the user... do they need to do so in the main drive or alter it in the landslide probability code? ig transient wetness = new so maybe in the main code later? also wetness used in FS which is in landslide prob function - maybe just hiding in there? -->
+Transient wetness ($w_t$) is derived using the [Optimized Green-Ampt Solver](https://soilwater.github.io/pynotes-agriscience/exercises/green_ampt.html)*(real source?)*. Assuming rainfall is constant througout the precipitation event, the model derives $w_t$ two ways. If all the precipiation is infultrating the soil (rain intensity < $K_{sat}$), cumulative infultration ( $F(t)$ ) is the sum of rain intensity $\times$ the duration of the event ($t$). If the precipiation does excede infultration capacity of the soil (rain intensity > $K_{sat}$), then the soil column cumulative infiltration is calculated as
+
+$$F(t) = K_{sat} \cdot t + \psi \Delta \upsilon ln (1+ \frac{F(t)}{\psi \Delta \upsilon})$$ 
+
+where $\psi$ is the soil suction head (m) based on the [model](https://wiki.tuflow.com/Green-Ampt_Infiltration_Parameters) recommmendations for the USDA soil class. $\Delta \upsilon$ is the change in volumetric water conten defined by $\upsilon = n - w_s$ where $n$ is porosity, also based on the model recommendations.
+
+The model uses the Newton Raphson numerical method to iteratively solve for $F$. Once $F$ is solved, $FS$ becomes
+
+$$FS = \frac {C + cos \theta [1- W(\frac{\rho_w}{\rho_{sc}})] tan \psi}{sin \theta}$$
+
+This model allows for the total saturation of a soil package to be determined during the course of the precipitation event. This saturation amount informs the function of the true weight of the soil which then alters the factor of safety.
 
 
 ### 3.3.2 Latin Hypercube Sampling Method
 
-To ensure robust landslide probability computation, the Latin Hypercube Sampling (LHS) technique is utilized to sample random values from equally probable bins for each parameter.
-
-*(insert fig for added visual)*
+To ensure robust landslide probability computation and to account for uncetainty in parameters (e.g. friction angle, soil cohesion, etc.), a form of the Monte Carlo Latin Hypercube Sampling (LHS) technique is utilized to sample random values from equally probable bins for each parameter.
 
 To create the LHS matrix, each parameters distribution is predefined by normal ranges found within the target area. These definitions can be found within the `perturb_settings` of the function. 
 The distribution of the parameters is then extracted, normalized around a mean of zero and split into the determined equally probable bins denoted as `n_bins`. 
@@ -398,7 +424,7 @@ The model then computes each pixels probability of failure based on the normal r
 
 where `inv_n_bins` is defined by `1 / n_bins` and `alpha` ($alpha$), which can be defined by the user, weights FS values close to zero to be more signifcant than values further from zero. This weighting allows areas that are slightly unstable to be signifcantly different than areas that are slightly stable under normal conditions. `prob_landslide` within this function has a value of zero but allows the computed values to by tied to an existant raster predefined in the model. As such the equation defining landslide probability at each pixel is
 
-$$\frac{1 \div b}{(1 + e^{(\alpha \times (Fs - 1)})}$$
+$$ Probability = \frac{1 \div b}{(1 + e^{(\alpha \times (Fs - 1)})}$$
 
 where $b$ is `n_bins`.
 
@@ -408,9 +434,28 @@ where $b$ is `n_bins`.
 
 ### 3.4 Expected Outputs
 
-The output from this model is a raster based probability of landslide occuring per pixel based on the input parameters.
+The output from this model is a raster based probability of landslide occuring per pixel based on the input parameters. Below is an example of the output of this model in the Chilliwack Valley, British Columbia, Cananda.
 
-*(put some figs in)*
+<img width="4092" height="2893" alt="example_map" src="https://github.com/user-attachments/assets/5154fa11-d556-4191-9e59-a07304619605" />
+
+*Map of Landslide Probability During a 50yr 24hr Storm in the Winter in the Chilliwack Valley (Yerex, 2026)*
+
+
+<!--
+### 3.5 Validity of the Model
+not sure if we need this section...
+
+This model's output was validated against manually mapped landslide points and polygons in target areas. The iteration shown in the map above was tested against two validity metrices, Earth Movers Distance (EMD) based on a study done by [Woodard & Mirus (2025](https://www.science.org/doi/full/10.1126/sciadv.adt1541) and receiver operator characteristic (ROC) curve with the area under the curve (AUC) metric. 
+
+<img width="1154" height="1185" alt="EMD_5m_a_50y24h" src="https://github.com/user-attachments/assets/3f5ba2ff-1ecf-4f7f-986b-4545d4a15aca" />
+*EMD Metric for the Landslide Probability During a 50yr 24hr Storm in the Winter in the Chilliwack Valley (Yerex, 2026).*
+
+<img width="1154" height="1185" alt="ROC_5m_a_50y24h" src="https://github.com/user-attachments/assets/0bf163bd-9b40-4343-952b-8a6068cab7c6" />
+*ROC curve with AUC metrics for the Landslide Probability During a 50yr 24hr Storm in the Winter in the Chilliwack Valley (Yerex, 2026).* 
+
+The EMD metrics indicate a value of 0.19and the ROC with AUC indicate value of 0.8259. 1 is the maximum value these metrics could produce. These values indiacte that the model is pretty good?
+-->
+
 
 
 ---
@@ -475,3 +520,5 @@ USDA. (2019, May 21). ROSETTA Class Average Hydraulic Parameters. USDA Agricultu
 Ushey K, Allaire J, and Tang Y (2026). reticulate: Interface to 'Python'. R package version 1.45.0, https://rstudio.github.io/reticulate/.
 
 Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., … van Mulbregt, P. (2020). SciPy 1.0: fundamental algorithms for scientific computing in Python. *Nature Methods, 17*(3), 261–272. https://doi.org/10.1038/s41592-019-0686-2
+
+Woodard, J. B., & Mirus, B. B. (2025). Overcoming the data limitations in landslide susceptibility modeling. *Science Advances, 11*(8), eadt1541. https://doi.org/10.1126/sciadv.adt1541
