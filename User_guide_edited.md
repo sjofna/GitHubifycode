@@ -130,7 +130,7 @@ soil_depth <- lrsc_depth_model(
 
 The parameters used are based the [model developer's](https://code.usgs.gov/ghsc/lhp/soil_depth) recommended values for the most similar climate, geology and vegetation to the sample target area. This values may need to be altered to fit the location being computed. 
 
-C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. This value is equal to the y-intercept in the linear regression. C<sub>0</sub> was calculated using the formula presented in the [Patton et al.](https://www.nature.com/articles/s41467-018-05743-y) paper where average soil thickness \bar{h} can be derived from the general equation 
+C<sub>0</sub> represents the background thickness soil thickness, or average soil depth within an area. This value is equal to the y-intercept in the linear regression. C<sub>0</sub> was calculated using the formula presented in the [Patton et al.](https://www.nature.com/articles/s41467-018-05743-y) paper where average soil thickness $\bar{h}$ can be derived from the general equation 
 
 $${h = (\frac{\mathrm \bigtriangleup h}{\mathrm \bigtriangleup C }) C + \bar{h}}$$
 
@@ -152,7 +152,7 @@ The filled DEM created with methods explained in [2.3 Road Filling](#23-road-fil
 
 The function `get_soilgrids` is adapted from [Giulio Genova's code](https://git.wur.nl/isric/soilgrids/soilgrids.notebooks/-/commit/23fe857b81fea0149526fbdee2115d1480b1568c) to access and download the target [SoilGrids](https://soilgrids.org) data. 
 
-This function is used to extract sand and clay percentages from depths of 0-100m. The `fix-soil`function converts the original units from $g/100g$ to a fraction for soil classifcation. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay )). This method ensures that all three values add up to one (100% of the soil) and is faster for processing.
+This function is used to extract sand and clay percentages from depths of 0-100m. The `fix-soil`function converts the original units from g/100g to a fraction for soil classifcation. This conversion also allows silt to be calculated from with the equation $( 1 - (\mathrm slope + clay ))$. This method ensures that all three values add up to one (100% of the soil) and is faster for processing.
 
 Soil texture class can optionally be computed with the `soil_texture` function. This function classifies the computed amount of sand and clay from the previous function `get_soilgrids` and compares it with the USDA classification. The function is based on [Hoffmann (2026)](https://www.mathworks.com/matlabcentral/fileexchange/45468-soil_classification-sand-clay-t-varargin) and [Mathews (2024)](https://code.usgs.gov/ghsc/lhp/regiongrow3d/-/blob/main/lib/functions/soil_classification_NM.m?ref_type=heads) soil classification functions. The function defines different silt and clay tresholds within twelve different soil types as seen in the figure below. 
 
@@ -192,7 +192,7 @@ Fine sand and coarse sand are calculated based on the research done by [Panagos 
 
 Based on soil parameters calculated in sections indicated in [2.5 Extract Soil Properties](#25-extract-soil-properties) and [2.6.1 Calculating Sand Subfractions](#261-calculating-sand-subfractions), internal friction and cohesion can be calculated with the functions `int_friction` and `unsat_cohesion`, respectively. 
 
-There are two options of methods that can be used in the function `int_friction`. Both the subfraction method and the GMD (geometric mean diameter) methods yeild similarly accurate results. The GMD method is recommended as the default but it is also encouraged to test both methods to see which is more accurate in the target region.
+There are two options of methods that can be used in the function `int_friction`. Both the subfraction method and the GMD (Geometric Mean Diameter) methods yeild similarly accurate results. The GMD method is recommended as the default but it is also encouraged to test both methods to see which is more accurate in the target region.
 
 When `method = "subfraction"`, the model is based on findings by [Khaboushan et al. (2018)](https://www.sciencedirect.com/science/article/pii/S0167198718308031) and utilizes fine sand and very fine sand subfractions to determine the angle of internal friction. 
 When using this method the friction angle (FA) $= 1.40 + 0.0001 \times (\mathrm fineSand^2) + 0.0001 * (\mathrm very Fine Sand^2)$. 
@@ -216,7 +216,7 @@ Cohesion is calculated as a function of the subfractions of clay, coarse sand an
 Cation Exchange Capacity (CEC) and pH are extracted from soil grid data accessed earlier with the `get_soilgrids` function.
 
 ### 2.7.1 Calculating K<sub>sat</sub>
-To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA Rosetta parameters](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/), and the EU method based on report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192). The EU method utilizes the equation $( 0.40220 + 0.26122 \times \mathrm pH + 0.44565 \times \mathrm TS_{value} - 0.02329 \times \mathrm clay - 0.01265 \times \mathrm silt - 0.01038 \times \mathrm cec )$ to calulate $\mathrm log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil [(Simons et al., 2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the incorrect units, it is derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
+To calculate K<sub>sat</sub> (saturated hydraulic conductivity) the function `transmissivity` is utilized. This function supports two methods; rosetta which assigns K<sub>sat</sub> based on [USDA Rosetta parameters](https://www.ars.usda.gov/pacific-west-area/riverside-ca/agricultural-water-efficiency-and-salinity-research-unit/docs/model/rosetta-class-average-hydraulic-parameters/), and the EU method based on report by [Simons et al. (2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf) and a study by [Tóth et al. (2014)](https://bsssjournals.onlinelibrary.wiley.com/doi/10.1111/ejss.12192). The EU method utilizes the equation $( 0.40220 + 0.26122 \times pH + 0.44565 \times TS_{value} - 0.02329 \times clay - 0.01265 \times \mathrm silt - 0.01038 \times cec )$ to calulate $log_{10}(k_{sat})$ where $TS_{value}$ is the distinction between subsoil and topsoil [(Simons et al., 2020)](https://www.futurewater.nl/wp-content/uploads/2020/10/HiHydroSoil-v2.0-High-Resolution-Soil-Maps-of-Global-Hydraulic-Properties.pdf)). As K<sub>sat</sub> is logged and in the incorrect units, it is derived using the equation $(10^{log_{10}(k_{sat})}) \div 100 \div 24)$.
 
 Transmissivity is then calculated by multiplying K<sub>sat</sub> by soil depth extracted as `soil_depth` in section [2.4 Soil Depth](#24-soil-depth). <!-- function needs to be fixed so skip full explanation for now -->
 
@@ -230,6 +230,7 @@ To calibrate K<sub>sat</sub>, NPP must also be rescaled by a factor or 0.1 from 
 With this the K<sub>sat</sub> factor becomes 
 
 <img width="603" height="76" alt="image" src="https://github.com/user-attachments/assets/6ad9a0a0-3c79-4df8-b885-b2e3057169f4" />
+where $p$ and $q$ are constants based on global usage (Fan et al., 2022). <!-- what are p and q?-->
 
 K<sub>sat</sub> is then multiplied by this factor to end with the new calibrated K<sub>sat</sub> that takes into account conductivity with biomass present in the soil.
 
